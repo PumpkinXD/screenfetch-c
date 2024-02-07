@@ -10,3 +10,9 @@ screenfetch-c
 x11test
 gltest
 
+# Xmake cache
+.xmake/
+build/
+
+# MacOS Cache
+.DS_Store
