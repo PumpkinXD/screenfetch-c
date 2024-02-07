@@ -19,3 +19,6 @@ build/
 
 # VScode
 .vscode
+
+#cosmocc
+cosmocc*
