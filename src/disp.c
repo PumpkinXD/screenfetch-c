@@ -12,6 +12,9 @@
 #include <string.h>
 #include <stdbool.h>
 
+/* "text required here lol" */
+#include<sys/utsname.h>
+
 /* program includes */
 #include "version.h"
 #include "logos.h"
@@ -214,8 +217,10 @@ void main_ascii_output(char *data[], char *data_names[]) {
     process_data(data, data_names, mint_logo, 18, DETECTED_ARR_LEN, TLGN, TNRM, TLGN);
   } else if (STREQ(data[1], "LMDE")) {
     process_data(data, data_names, lmde_logo, 18, DETECTED_ARR_LEN, TLGN, TNRM, TLGN);
-  } else if (STREQ(data[1], "Ubuntu") || STREQ(data[1], "Lubuntu") || STREQ(data[1], "Xubuntu")) {
+  } else if (STREQ(data[1], "Ubuntu") || STREQ(data[1], "Lubuntu") || STREQ(data[1], "Xubuntu")/*||STREQ(data[1], "neon")*/) {/*just a workaround*/
     process_data(data, data_names, ubuntu_logo, 18, DETECTED_ARR_LEN, TLRD, TNRM, TLRD);
+  } else if (STREQ(data[1], "KDE neon")) {
+    process_data(data, data_names, neon_logo, 19, DETECTED_ARR_LEN, TLCY, TNRM, TLCY);
   } else if (STREQ(data[1], "Debian")) {
     process_data(data, data_names, debian_logo, 18, DETECTED_ARR_LEN, TLRD, TNRM, TLRD);
   } else if (STREQ(data[1], "CrunchBang")) {
@@ -284,9 +289,17 @@ void main_ascii_output(char *data[], char *data_names[]) {
   } else if (STREQ(data[1], "SunOS")) {
     process_data(data, data_names, solaris_logo, 17, DETECTED_ARR_LEN, TNRM, TNRM, TNRM);
   } else {
-    ERR_REPORT("Could not find a logo for the distro.");
+    /*print kernel's logo if cannot find a logo*/
+    struct utsname kern_info;
+    if (!(uname(&kern_info))) {
+      if (STREQ(kern_info.sysname,"Linux")){
+        process_data(data, data_names, linux_logo, 18, DETECTED_ARR_LEN, TLGY, TNRM, TLGY);
+      } else {
+        ERR_REPORT("Could not find a logo for the distro.");}
+    } else {
+      ERR_REPORT("Could not find a logo for the distro.");
+    }
   }
-
   return;
 }
 

@@ -51,4 +51,7 @@ extern char *linux_logo[];
 extern char *solaris_logo[];
 extern char *angstrom_logo[];
 
+/*from neofetch*/
+extern char *neon_logo[];
+
 #endif /* SCREENFETCH_C_LOGOS_H */

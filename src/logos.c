@@ -864,3 +864,26 @@ char *angstrom_logo[] = {"						    ",
                          "						    ",
                          "						    ",
                          "						    "};
+
+
+
+/*copied from neofetch*/
+char *neon_logo[] = { TCYN"             `..---+/---..`              "TNRM,
+                      TCYN"         `---.``   ``   `.---.`           "TNRM,
+                      TCYN"      .--.`        ``        `-:-.        "TNRM,
+                      TCYN"    `:/:     `.----//----.`     :/-       "TNRM,
+                      TCYN"   .:.    `---`          `--.`    .:`     "TNRM,
+                      TCYN"  .:`   `--`                .:-    `:.    "TNRM,
+                      TCYN" `/    `:.      `.-::-.`      -:`   `/`   "TNRM,
+                      TCYN" /.    /.     `:++++++++:`     .:    .:   "TNRM,
+                      TCYN"`/    .:     `+++++++++++/      /`   `+`  "TNRM,
+                      TCYN"/+`   --     .++++++++++++`     :.   .+:  "TNRM,
+                      TCYN"`/    .:     `+++++++++++/      /`   `+`  "TNRM,
+                      TCYN" /`    /.     `:++++++++:`     .:    .:   "TNRM,
+                      TCYN" ./    `:.      `.:::-.`      -:`   `/`   "TNRM,
+                      TCYN"  .:`   `--`                .:-    `:.    "TNRM,
+                      TCYN"   .:.    `---`          `--.`    .:`     "TNRM,
+                      TCYN"    `:/:     `.----//----.`     :/-       "TNRM,
+                      TCYN"      .-:.`        ``        `-:-.        "TNRM,
+                      TCYN"         `---.``   ``   `.---.`           "TNRM,
+                      TCYN"             `..---+/---..`               "TNRM};
