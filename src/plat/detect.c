@@ -6,21 +6,19 @@
 #include <unistd.h>
 #include <getopt.h>
 
+/* ints and chars */
 #include <stdint.h>
-#include<uchar.h>
+#include <uchar.h>
 
 #include <regex.h>
  
 
-/* cosmo libc includes*/
+/* cosmo libc includes */
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
-// #include<dlfcn.h> /* for loading native functions */
-#include <libc/dlopen/dlfcn.h>
+#include <dlfcn.h> /* for loading native functions */
 #include <libc/nt/windows.h>
-// #include "libc/calls/struct/runtime.h"
-// #include <libc/calls/calls.h>
-//#include "libc/nt/windows.h"
+
 
 
 /* program includes */
@@ -33,12 +31,12 @@
 #include "../error_flag.h"
 
 
-// static struct utsname utsinst;
 
 static void detect_distro_linux(void);
 static void detect_distro_bsd(void){};//*bsd
 static void detect_distro_darwin(void){};
-static void detect_distro_windows(void);//pure windows,mingw, cygwin, msys, reactos or wine, etc.
+static void detect_distro_windows(void);
+
 
 
 void detect_distro(void){
@@ -60,17 +58,11 @@ void detect_distro(void){
     }
     
     
-    
-
   }
   else
   {
-    /* code */
+    /*show errors?*/
   }
-  
-
-  // STREQ(distro_str, "Ubuntu")
-//TODO:detect OS on runtime
 }
 void detect_host(void){
   char *given_user = "Unknown";
@@ -100,7 +92,6 @@ void detect_kernel(void) {
              kern_info.machine);
   } else if (error) {
     ERR_REPORT("Could not detect kernel information.");
-    // safe_strncpy(kernel_str, "Unknown", MAX_STRLEN);
   }
 
   return;
@@ -138,6 +129,13 @@ void detect_wm_theme(void){};
 void detect_gtk(void){};
 
 
+
+/***
+ * 
+ *  Modified from detect(void); (src/plat/linux/detect.c, master branch)
+ * 
+ * 
+*/
 void detect_distro_linux(void){
    /* if distro_str was NOT set by the -D flag */
   if (STREQ(distro_str, "Unknown")) {
@@ -180,7 +178,6 @@ void detect_distro_linux(void){
           detected = true;
           safe_strncpy(host_color, TLRD, MAX_STRLEN);
         } else if (STREQ(distro_name_str, "neon")) {
-          // printf("hi kde\n");
           safe_strncpy(distro_str, "KDE neon", MAX_STRLEN);
           detected = true;
           safe_strncpy(host_color, TLRD, MAX_STRLEN);
@@ -247,10 +244,17 @@ void detect_distro_linux(void){
   return;
 }
 
+
+/***
+ * 
+ *  Modified from detect(void); (src/plat/win32/detect.c, master branch)
+ * 
+ * 
+*/
 void detect_distro_windows(void){
   void *ntdll=cosmo_dlopen("ntdll.dll", RTLD_LAZY);
   if(!ntdll){
-    fprintf(stderr, "%s\n", dlerror());
+    fprintf(stderr, "%s\n", cosmo_dlerror());
     ERR_REPORT("Could not load ntdll.dll.");
     exit(1);
   }
@@ -263,8 +267,8 @@ void detect_distro_windows(void){
     uint32_t dwPlatformId;//ULONG
     char16_t szCSDVersion[128];//win32 ver wchar_t
   } OSVERSIONINFOW, *POSVERSIONINFOW, *LPOSVERSIONINFOW, RTL_OSVERSIONINFOW, *PRTL_OSVERSIONINFOW;
-  typedef int32_t(*fnRtlGetVersion)(PRTL_OSVERSIONINFOW lpVersionInformation);
-  fnRtlGetVersion pRtlGetVersion=cosmo_dlsym(ntdll,"RtlGetVersion");//not working atm
+  typedef int32_t(* __attribute__((__ms_abi__))fnRtlGetVersion)(PRTL_OSVERSIONINFOW lpVersionInformation);
+  fnRtlGetVersion pRtlGetVersion=cosmo_dlsym(ntdll,"RtlGetVersion");
 
   if(!pRtlGetVersion){
     fprintf(stderr, "%s\n", cosmo_dlerror());
