@@ -220,7 +220,7 @@ void main_ascii_output(char *data[], char *data_names[]) {
   } else if (STREQ(data[1], "Ubuntu") || STREQ(data[1], "Lubuntu") || STREQ(data[1], "Xubuntu")/*||STREQ(data[1], "neon")*/) {/*just a workaround*/
     process_data(data, data_names, ubuntu_logo, 18, DETECTED_ARR_LEN, TLRD, TNRM, TLRD);
   } else if (STREQ(data[1], "KDE neon")) {
-    process_data(data, data_names, neon_logo, 19, DETECTED_ARR_LEN, TLCY, TNRM, TLCY);
+    process_data(data, data_names, neon_logo, 19, DETECTED_ARR_LEN, TLGN, TNRM, TLGN);
   } else if (STREQ(data[1], "Debian")) {
     process_data(data, data_names, debian_logo, 18, DETECTED_ARR_LEN, TLRD, TNRM, TLRD);
   } else if (STREQ(data[1], "CrunchBang")) {
