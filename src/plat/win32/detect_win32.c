@@ -1,4 +1,4 @@
- /* standard includes */
+/* standard includes */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -12,7 +12,7 @@
 #include <iconv.h>  
 
 #include <regex.h>
- 
+
 
 /* cosmo libc includes */
 #include <sys/sysinfo.h>
@@ -38,6 +38,9 @@
 
 
 
+static char* GetRegU8StrValue(int64_t predefined,const char16_t* pathkey, const char16_t* key);//use free(1) to deallocate
+static char *utf16_to_utf8(const char16_t *input);
+
 /***
  * 
  *  Modified from detect(void); (src/plat/win32/detect.c, master branch)
@@ -45,6 +48,14 @@
  * 
 */
 void detect_distro_windows(void){
+
+  //TODO:reactos, wine,mingw, etc.
+  //@see https://reactos.org/forum/viewtopic.php?p=129190#p129190
+  //@see https://www.winehq.org/pipermail/wine-devel/2008-September/069387.html
+  //@see https://www.msys2.org/wiki/Porting/ (ENV?)
+
+
+
   void *ntdll=cosmo_dlopen("ntdll.dll", RTLD_LAZY);
   if(!ntdll){
     fprintf(stderr, "%s\n", cosmo_dlerror());
@@ -135,7 +146,7 @@ void detect_distro_windows(void){
 }
 void detect_cpu_windows(void) {
 
-    const int key_read=0x00020019;;
+    const int key_read=0x00020019;
     int64_t hkey;
     uint32_t str_size=MAX_STRLEN;
     char16_t buffer[MAX_STRLEN];
@@ -169,10 +180,176 @@ void detect_cpu_windows(void) {
         iconv_close(cd);  
         exit(1);  
     }  
-    safe_strncpy(cpu_str,utf8_buffer,MAX_STRLEN);//or strlen(outbuf)+1?
+    safe_strncpy(cpu_str,utf8_buffer,MAX_STRLEN);//or strlen(utf8_buffer)+1?
 
     free(utf8_buffer);
     iconv_close(cd);
     RegCloseKey(hkey);
     return;
 }
+
+
+
+void detect_gpu_windows(void) {
+
+
+
+  typedef struct _DISPLAY_DEVICEW {
+    uint32_t cb;//DWORD
+    char16_t DeviceName[32];//WCHAR
+    char16_t DeviceString[128];//WCHAR
+    uint32_t StateFlags;//DWORD
+    char16_t DeviceID[128];//WCHAR
+    char16_t DeviceKey[128];//WCHAR
+  } DISPLAY_DEVICEW, *PDISPLAY_DEVICEW, *LPDISPLAY_DEVICEW;
+
+  typedef int32_t(* __attribute__((__ms_abi__))fnEnumDisplayDevicesW)(
+    char16_t          *lpDevice,
+    uint32_t            iDevNum,
+    PDISPLAY_DEVICEW lpDisplayDevice,
+    uint32_t            dwFlags
+  );
+
+  void *User32_dll=cosmo_dlopen("User32.dll", RTLD_LAZY);
+  if(!User32_dll){
+      fprintf(stderr, "%s\n", cosmo_dlerror());
+      ERR_REPORT("Could not load User32.dll.");
+      exit(1);
+    }
+  fnEnumDisplayDevicesW pEnumDisplayDevicesW=cosmo_dlsym(User32_dll,"EnumDisplayDevicesW");
+    if(!pEnumDisplayDevicesW){
+    fprintf(stderr, "%s\n", cosmo_dlerror());
+    ERR_REPORT("Could not load EnumDisplayDevicesW.");
+    exit(1);
+  }
+  DISPLAY_DEVICEW displayDevice;
+  displayDevice.cb = sizeof(DISPLAY_DEVICEW);
+  pEnumDisplayDevicesW(NULL,0,&displayDevice,0);
+
+
+  char* gpu_str_win32=utf16_to_utf8(displayDevice.DeviceString);
+
+  safe_strncpy(gpu_str,gpu_str_win32,MAX_STRLEN);
+
+
+  free(gpu_str_win32);
+  cosmo_dlclose(User32_dll);
+  // free(gpu_str_win32);
+  return;
+}
+
+
+
+
+
+
+/// @brief GetRegU8StrValue - WIN32 utility functions (may fail)
+/// @param predefined kNtHkeyClassesRoot kNtHkeyCurrentUser kNtHkeyLocalMachine kNtHkeyUsers
+/// @param pathkey The path of a registry key relative to the key specified by the `predefined` parameter.
+/// @param key The name of the registry value.
+/// @return char* - utf8 string (must be free()'d after use)
+static char __attribute__((warn_unused_result)) *GetRegU8StrValue(int64_t predefined,const char16_t* pathkey, const char16_t* key){
+
+  const int key_read=0x00020019;
+  int64_t hkey;
+  uint32_t str_size=MAX_STRLEN;
+  char16_t buffer[MAX_STRLEN];
+  int32_t nterrorval=0;
+  RegOpenKeyEx(predefined,pathkey,0,key_read,&hkey);
+
+  if(nterrorval=RegQueryValueEx(hkey,key,0,NULL,(char*)buffer,&str_size)){
+    // perror("RegQueryValueEx");
+     fprintf(stderr,"RegQueryValueEx returned %d !\ncheck https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes for more info\n",nterrorval);
+    RegCloseKey(hkey);
+    exit(1);
+  }
+
+      // //utf16le to utf8
+  iconv_t cd = iconv_open("UTF-8", "UTF-16LE");  
+  if (cd == (iconv_t)-1) {  
+      perror("iconv_open");  
+      RegCloseKey(hkey);
+      exit(1);
+  }  
+  size_t utf8_size = str_size * 6 + 1; 
+  size_t utf16_size=str_size;
+  char *utf8_buffer = (char *)malloc(utf8_size);
+      if (utf8_buffer == NULL) {  
+      perror("malloc");  
+      iconv_close(cd);  
+      RegCloseKey(hkey);
+      exit(1);  
+  }  
+  char *inptr = (char *)buffer;
+  char *outptr = utf8_buffer;
+  memset(utf8_buffer, 0, utf8_size);
+  if (iconv(cd, &inptr, &utf16_size, &outptr, &utf8_size) == (size_t)-1) {  
+      perror("iconv");
+      ERR_REPORT("Failed to convert to utf8.");
+      free(utf8_buffer);
+      iconv_close(cd);
+      RegCloseKey(hkey);
+      exit(1);  
+  }
+
+  iconv_close(cd);
+  RegCloseKey(hkey);
+
+  //shrink_to_fit
+
+  size_t utf8_str_len=strlen(utf8_buffer);
+  char *dest=(char*)malloc(utf8_str_len+1);
+      if (dest == NULL) {
+      perror("malloc");
+      free(utf8_buffer);
+      exit(1);
+  }
+  memcpy(dest,utf8_buffer,utf8_str_len);
+  free(utf8_buffer);
+
+  return dest;
+}
+
+
+
+static char __attribute__((warn_unused_result)) *utf16_to_utf8(const char16_t *input) {  
+    if (!input) exit(1);  
+  
+    size_t input_length = strlen16(input);
+  
+
+    char *u8buf = (char *)malloc(input_length * 6 + 1); 
+    if (!u8buf) exit(1);  
+  
+    memset(u8buf,0,input_length*6+1);
+    
+  
+    iconv_t cd = iconv_open("UTF-8", "UTF-16LE");  
+    if (cd == (iconv_t)-1) {  
+        perror("iconv_open");  
+        free(u8buf);  
+        exit(1); 
+    }  
+  
+    char16_t *input_ptr = (char16_t *)input;  
+    char *output_ptr = u8buf;  
+    size_t inbytesleft = input_length * sizeof(char16_t);  
+    size_t outbytesleft = input_length * 6; 
+  
+    if (iconv(cd, (char**)&input_ptr, &inbytesleft, &output_ptr, &outbytesleft) == (size_t)-1) {  
+        perror("iconv");  
+        iconv_close(cd);  
+        free(u8buf);  
+        exit(1); 
+    }  
+  
+    iconv_close(cd);  
+
+    size_t u8strsize=strlen(u8buf)+1;
+    char *new_str = realloc(u8buf, u8strsize);
+    if (!new_str) {  
+        perror("realloc");  
+        return u8buf;
+    }  
+    return new_str;
+}  

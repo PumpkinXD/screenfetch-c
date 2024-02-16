@@ -186,3 +186,10 @@ void detect_cpu_linux(void) {
 
   return;
 }
+
+void detect_gpu_linux(void) {
+
+
+  //todo:use glx or smh?
+
+}

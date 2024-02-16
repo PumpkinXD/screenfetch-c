@@ -1,6 +1,6 @@
 add_rules("mode.debug", "mode.release")
 
-target("screenfetch-c")
+target("screenfetch-c.com")
     set_kind("binary")
     add_files("src/**.c")
     set_toolchains("@cosmocc")

@@ -171,7 +171,26 @@ void detect_cpu(void){
    }
   }
 };
-void detect_gpu(void){};
+void detect_gpu(void){
+  struct utsname kern_info;
+  if (!(uname(&kern_info))) {
+      if (!(uname(&kern_info))) {
+    if (STREQ(kern_info.sysname,"Linux"))
+    {
+      detect_gpu_linux();
+      return;
+    }else if (STREQ(kern_info.sysname,"Windows"))
+    {
+      detect_gpu_windows();
+      return;
+    }else if (STREQ(kern_info.sysname,"Darwin"))
+    {
+      // detect_cpu_darwin();
+      return;
+    }
+   }
+  }
+};
 void detect_disk(void){};
 void detect_mem(void){};
 void detect_shell(void){};
