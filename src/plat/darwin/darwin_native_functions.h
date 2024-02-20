@@ -19,6 +19,16 @@ const uint32_t kNilOptions = 0;
 
 
 
+
+
+
+
+
+
+
+
+
+
 /*IDK which dylib contains these functions...*/
 
 
@@ -47,7 +57,7 @@ typedef int32_t(*fnCFStringGetIntValue)(
 );
 
 //returns const void*
-typedef void*(*fnCFArrayGetValueAtIndex)(
+typedef const void*(*fnCFArrayGetValueAtIndex)(
     //CFArrayRef
     void* theArray,
     //CFIndex
@@ -92,6 +102,9 @@ typedef int32_t(*fnsysctlbyname)(
 );
 
 
+
+
+
 //returns CFMutableDictionaryRef
 typedef void*(*fnIOServiceMatching)(const char *name);
 
@@ -129,7 +142,60 @@ typedef int32_t(*fnIOObjectRelease)(
     uint32_t object);
 
 
-//TODO:convert https://github.com/woodruffw/screenfetch-c/blob/2d76746f07e502818051652878c334f9eb93ea6d/src/plat/darwin/detect.c#L205 called functions to "pointers to function", and find their .mylib files
+
+
+
+//returns const void*
+typedef const void* (*fnCFDictionaryGetValue)(
+    //CFDictionaryRef
+    void* theDict,
+    //const void*
+    const void *key
+);
+
+//returns CFTypeID
+typedef uint64_t(*fnCFGetTypeID)(
+    //CFTypeRef
+    void* cf
+);
+
+//returns CFTypeID
+typedef uint64_t(*fnCFDataGetTypeID)(void);
+
+
+typedef const uint8_t*(*fnCFDataGetBytePtr)(
+    //CFDataRef
+    void* theData
+);
+
+// void CFRelease(CFTypeRef cf);
+typedef void(*fnCFRelease)(void* cf);
+
+
+
+
+
+
+
+//TODO:https://github.com/woodruffw/screenfetch-c/blob/2d76746f07e502818051652878c334f9eb93ea6d/src/plat/darwin/detect.c#L318C3-L318C25
+
+//CGError CGGetOnlineDisplayList(uint32_t maxDisplays, CGDirectDisplayID *onlineDisplays, uint32_t *displayCount);
+
+//size_t CGDisplayPixelsWide(CGDirectDisplayID display);
+
+//size_t CGDisplayPixelsHigh(CGDirectDisplayID display);
+
+
+
+
+//CFIndex CFPreferencesGetAppIntegerValue(CFStringRef key, CFStringRef applicationID, Boolean *keyExistsAndHasValidFormat);
+
+
+
+
+
+
+
 
 
 #endif

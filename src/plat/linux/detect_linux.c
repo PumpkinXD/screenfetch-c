@@ -9,8 +9,9 @@
 /* ints and chars */
 #include <stdint.h>
 #include <uchar.h>
-#include <iconv.h>  
 
+/* gnu */
+#include <iconv.h>  
 #include <regex.h>
  
 
