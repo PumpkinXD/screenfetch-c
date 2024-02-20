@@ -8,9 +8,11 @@
 
 /* ints and chars */
 #include <stdint.h>
+#include <inttypes.h>
 #include <uchar.h>
-#include <iconv.h>  
 
+/* gnu stuff */
+#include <iconv.h>  
 #include <regex.h>
  
 
@@ -68,44 +70,16 @@ void detect_host(void){
   char *given_user = "Unknown";
   char given_host[MAX_STRLEN] = "Unknown";
   struct utsname host_info;
-  uname(&host_info);
   
+  if (!uname(&host_info))
+  {
   if(STREQ(host_info.sysname,"Windows")){
-
-    // given_user = malloc(sizeof(char) * MAX_STRLEN);
-    // if (!given_user) {
-    //   ERR_REPORT("Memory allocation failed in detect_host.");
-    //   exit(1);
-    // }
-
-
-    // void *Advapi32_dll=cosmo_dlopen("Advapi32.dll", RTLD_LAZY);
-    // if (!Advapi32_dll)
-    // {
-    //   ERR_REPORT("Failed to load Advapi32.dll in detect_host");
-    //   exit(1);
-    // }
-    // typedef uint32_t(* __attribute__((__ms_abi__))fnGetUserNameW)(char16_t* lpBuffer, uint32_t* pcbBuffer);
-    // typedef uint32_t(* __attribute__((__ms_abi__))fnGetUserNameA)(char* lpBuffer, uint32_t* pcbBuffer);
-    // fnGetUserNameW pGetUserNameW=cosmo_dlsym(Advapi32_dll,"GetUserNameW");
-    // fnGetUserNameA pGetUserNameA=cosmo_dlsym(Advapi32_dll,"GetUserNameA");
-    // if (!pGetUserNameA)
-    // {
-    //   ERR_REPORT("Failed to load function \"GetUserNameA()\" in detect_host");
-    //   exit(1);
-    // }
 
     given_user=getlogin();
     gethostname(given_host, MAX_STRLEN);
-    //iconv_t cd = iconv_open("UTF-8", "UTF-16LE");
-    // iconv(cd,&given_user_u16,&inbytesleft,outbuf,outbytesleft);//
     
     snprintf(host_str, MAX_STRLEN, "%s%s%s%s@%s%s%s%s", host_color, given_user, TNRM, TWHT, TNRM,
              host_color, given_host, TNRM);
-
-    // free(given_user);
-    //iconv_close(cd);
-    // cosmo_dlclose(Advapi32_dll);
     return;
   }else{
   /* posix */
@@ -116,7 +90,7 @@ void detect_host(void){
            host_color, given_host, TNRM);
 
   return;
-  }
+  }}
 };
 void detect_kernel(void) {
   struct utsname kern_info;
@@ -185,14 +159,24 @@ void detect_gpu(void){
       return;
     }else if (STREQ(kern_info.sysname,"Darwin"))
     {
-      // detect_cpu_darwin();
+      // detect_gpu_darwin();
       return;
     }
    }
   }
 };
 void detect_disk(void){};
-void detect_mem(void){};
+void detect_mem(void){
+  struct sysinfo si;
+  if (!sysinfo(&si))
+  {
+    uint64_t total_mem_mib = si.totalram * si.mem_unit / (1024 * 1024);  
+    uint64_t free_mem_mib = si.freeram * si.mem_unit / (1024 * 1024);  
+    uint64_t used_mem_mib = total_mem_mib - free_mem_mib;  
+    uint64_t mem_pct = total_mem_mib > 0 ? (used_mem_mib * 100 / total_mem_mib) : 0;
+      snprintf(mem_str, MAX_STRLEN, "%"PRId64"%s / %"PRId64"%s (%"PRId64"%%)", used_mem_mib, "MiB", total_mem_mib, "MiB", mem_pct);
+  }
+};
 void detect_shell(void){};
 void detect_res(void){};
 void detect_de(void){};
