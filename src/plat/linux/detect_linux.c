@@ -37,7 +37,7 @@
 
 /***
  * 
- *  Modified from detect(void); (src/plat/linux/detect.c, master branch)
+ *  Modified from detect_distro(void); (src/plat/linux/detect.c, master branch)
  * 
  * 
 */
@@ -193,4 +193,34 @@ void detect_gpu_linux(void) {
 
   //todo:use glx or smh?
 
+}
+
+
+
+
+
+
+/// @brief Copied from detect_de(void); (src/plat/linux/detect.c, master branch)
+///  
+void detect_de_linux(void) {
+  char *curr_de;
+
+  if ((curr_de = getenv("XDG_CURRENT_DESKTOP"))) {
+    safe_strncpy(de_str, curr_de, MAX_STRLEN);
+  } else {
+    if (getenv("GNOME_DESKTOP_SESSION_ID")) {
+      safe_strncpy(de_str, "Gnome", MAX_STRLEN);
+    } else if (getenv("MATE_DESKTOP_SESSION_ID")) {
+      safe_strncpy(de_str, "MATE", MAX_STRLEN);
+    } else if (getenv("KDE_FULL_SESSION")) {
+      /*	KDE_SESSION_VERSION only exists on KDE4+, so
+        getenv will return NULL on KDE <= 3.
+       */
+      snprintf(de_str, MAX_STRLEN, "KDE%s", getenv("KDE_SESSION_VERSION"));
+    } else if (error) {
+      ERR_REPORT("No desktop environment found.");
+    }
+  }
+
+  return;
 }
