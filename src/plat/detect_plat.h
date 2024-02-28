@@ -10,12 +10,14 @@ void detect_distro_windows(void);
 void detect_cpu_linux(void);
 // void detect_cpu_bsd(void);
 void detect_cpu_darwin(void);
+void detect_cpu_darwin_x86workaround(void);
 // void detect_cpu_solaris(void);
 void detect_cpu_windows(void);
 
 void detect_gpu_linux(void);
 // void detect_gpu_bsd(void);
 void detect_gpu_darwin(void);
+void detect_gpu_darwin_x86workaround(void);
 // void detect_gpu_solaris(void);
 void detect_gpu_windows(void);
 

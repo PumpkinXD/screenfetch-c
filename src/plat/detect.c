@@ -121,7 +121,11 @@ void detect_cpu(void) {
         detect_cpu_windows();
         return;
       } else if (STREQ(kern_info.sysname, "Darwin")) {
-        detect_cpu_darwin();
+        if (STREQ(kern_info.machine, "aarch64")) {
+          detect_cpu_darwin();
+        }else{
+          detect_cpu_darwin_x86workaround();
+        }
         return;
       }
     }
@@ -138,7 +142,12 @@ void detect_gpu(void) {
         detect_gpu_windows();
         return;
       } else if (STREQ(kern_info.sysname, "Darwin")) {
-        detect_gpu_darwin();
+        if(STREQ(kern_info.machine,"aarch64"))
+        {
+          detect_gpu_darwin();
+        }else{
+          detect_gpu_darwin_x86workaround();
+        }
         return;
       }
     }

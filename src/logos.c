@@ -887,3 +887,42 @@ char *neon_logo[] = { TLGN"             `..---+/---..`              "TNRM,
                       TLGN"      .-:.`        ``        `-:-.        "TNRM,
                       TLGN"         `---.``   ``   `.---.`           "TNRM,
                       TLGN"             `..---+/---..`               "TNRM};
+
+//15
+char *windows_post_modern_logo[] = {
+    TLBL "################  ################" TNRM,
+    TLBL "################  ################" TNRM,
+    TLBL "################  ################" TNRM,
+    TLBL "################  ################" TNRM,
+    TLBL "################  ################" TNRM, 
+    TLBL "################  ################" TNRM,
+    TLBL "################  ################" TNRM, 
+    "\0",
+    TLBL "################  ################" TNRM, 
+    TLBL "################  ################" TNRM,
+    TLBL "################  ################" TNRM, 
+    TLBL "################  ################" TNRM,
+    TLBL "################  ################" TNRM, 
+    TLBL "################  ################" TNRM,
+    TLBL "################  ################" TNRM};
+
+//19
+char *rocky[] = {"          __wgliliiligw_,",
+                 "       _williiiiiiliilililw,",
+                 "     _%iiiiiilililiiiiiiiiiii_",
+                 "   .Qliiiililiiiiiiililililiilm.",
+                 "  _iiiiiliiiiiililiiiiiiiiiiliil,",
+                 " .lililiiilililiiiilililililiiiii,",
+                 "_liiiiiiliiiiiiiliiiiiF{iiiiiilili,",
+                 "jliililiiilililiiili@`  ~ililiiiiiL",
+                 "iiiliiiiliiiiiiili>`      ~liililii",
+                 "liliiiliiilililii`         -9liiiil",
+                 "iiiiiliiliiiiii~             \"4lili",
+                 "4ililiiiiilil~|      -w,       )4lf",
+                 "-liiiiililiF\'       _liig,       )\'",
+                 " )iiiliii@`       _QIililig,",
+                 "  )iiii>`       .Qliliiiililw",
+                 "   )<>~       .mliiiiiliiiiiil,",
+                 "            _gllilililiililii~",
+                 "           giliiiiiiiiiiiiT`",
+                 "          -^~$ililili@~~\'"};

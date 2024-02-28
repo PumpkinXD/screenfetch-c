@@ -51,7 +51,17 @@ extern char *linux_logo[];
 extern char *solaris_logo[];
 extern char *angstrom_logo[];
 
-/*from neofetch*/
+/**
+ *  following logos are copied from neofetch 
+ * 
+ */
+
 extern char *neon_logo[];
+
+extern char *windows_post_modern_logo[];//"post modern" lol
+
+extern char *rocky[];
+
+extern char *steam[];
 
 #endif /* SCREENFETCH_C_LOGOS_H */

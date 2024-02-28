@@ -32,6 +32,15 @@
 #include "../../util.h"
 #include "../../error_flag.h"
 #include "../detect_plat.h"
+#include "x11_native_functions.h"
+
+
+
+
+
+static void detect_gpu_xorg(void);
+static void detect_gpu_wayland(void);
+
 
 
 
@@ -189,9 +198,23 @@ void detect_cpu_linux(void) {
 }
 
 void detect_gpu_linux(void) {
+  const char *sessionType = getenv("XDG_SESSION_TYPE");
 
+  if(sessionType){
+    if (STREQ(sessionType,"wayland")) {
+      detect_gpu_wayland();
+      return;
+    }else if (STREQ(sessionType,"x11"))
+    {
+      detect_gpu_xorg();
+      return;
+    }else
+    {
+      //idk
+    }
+    
+  }
 
-  //todo:use glx or smh?
 
 }
 
@@ -223,4 +246,78 @@ void detect_de_linux(void) {
   }
 
   return;
+}
+
+void detect_gpu_xorg(void) {
+  void *libX11_so = cosmo_dlopen("libX11.so",RTLD_LAZY);
+  void *libGL_so = cosmo_dlopen("libGL.so", RTLD_LAZY);
+  void *libGLX_so = cosmo_dlopen("libGLX.so", RTLD_LAZY);
+  if (!libGL_so || !libGL_so || !libGLX_so) {
+    exit(1);
+  }
+
+  fnXOpenDisplay pXOpenDisplay;
+  fnXCloseDisplay pXCloseDisplay;
+  fnXFree pXFree;
+
+  fnglXChooseVisual pglXChooseVisual;
+  fnglXCreateContext pglXCreateContext;
+  fnglXMakeCurrent pglXMakeCurrent;
+  fnglGetString pglGetString;
+  fnglXDestroyContext pglXDestroyContext;
+
+//load fns
+  pXOpenDisplay = cosmo_dlsym(libX11_so, "XOpenDisplay");
+  pXCloseDisplay = cosmo_dlsym(libX11_so, "XCloseDisplay");
+  pXFree = cosmo_dlsym(libX11_so, "XFree");
+
+  pglGetString = cosmo_dlsym(libGL_so, "glGetString");
+  pglXChooseVisual = cosmo_dlsym(libGLX_so, "glXChooseVisual");
+  pglXCreateContext = cosmo_dlsym(libGLX_so, "glXCreateContext");
+  pglXMakeCurrent = cosmo_dlsym(libGLX_so, "glXMakeCurrent");
+  pglXDestroyContext = cosmo_dlsym(libGLX_so, "glXDestroyContext");
+  if (!pXOpenDisplay || !pXCloseDisplay || !pXFree || !pglGetString || !pglXChooseVisual ||
+      !pglXCreateContext || !pglXMakeCurrent || !pglXDestroyContext) {
+    exit(1);
+  }
+
+  {
+    Display *disp = NULL;
+    Window wind;
+    GLint attr[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
+    XVisualInfo *visual_info = NULL;
+    GLXContext context = NULL;
+
+    if ((disp = pXOpenDisplay(NULL))) {
+      wind = DefaultRootWindow(disp);
+
+      if ((visual_info = pglXChooseVisual(disp, 0, attr))) {
+        if ((context = pglXCreateContext(disp, visual_info, NULL, 1))) {
+          pglXMakeCurrent(disp, wind, context);
+          safe_strncpy(gpu_str, (const char *)pglGetString(GL_RENDERER), MAX_STRLEN);
+
+          pglXDestroyContext(disp, context);
+        } else if (error) {
+          ERR_REPORT("Failed to create OpenGL context.");
+        }
+
+        pXFree(visual_info);
+      } else if (error) {
+        ERR_REPORT("Failed to select a proper X visual.");
+      }
+
+      pXCloseDisplay(disp);
+    } else if (error) {
+      safe_strncpy(gpu_str, "No X Server", MAX_STRLEN);
+      ERR_REPORT("Could not open an X display (detect_gpu).");
+    }
+  }
+  dlclose(libX11_so);
+  dlclose(libGL_so);
+  dlclose(libGLX_so);
+  return;
+}
+
+
+void detect_gpu_wayland(void) {
 }
