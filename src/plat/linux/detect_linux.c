@@ -18,12 +18,11 @@
 /* cosmo libc includes */
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
+#include <sys/statvfs.h>
 #include <dlfcn.h> /* for loading native functions */
+#include <mntent.h>
 
-
-
-
-/* program includes */
+ /* program includes */
 #include "../../detect.h"
 #include "../../arrays.h"
 #include "../../colors.h"
@@ -34,128 +33,123 @@
 #include "../detect_plat.h"
 #include "x11_native_functions.h"
 
+ static void detect_gpu_xorg(void);
+ static void detect_gpu_wayland(void);
+ static void detect_gpu_lspci(void);
 
-
-
-
-static void detect_gpu_xorg(void);
-static void detect_gpu_wayland(void);
-
-
-
-
-/***
- * 
- *  Modified from detect_distro(void); (src/plat/linux/detect.c, master branch)
- * 
- * 
-*/
-void detect_distro_linux(void){
+ /***
+  *
+  *  Modified from detect_distro(void); (src/plat/linux/detect.c, master branch)
+  *
+  *
+  */
+ void detect_distro_linux(void) {
    /* if distro_str was NOT set by the -D flag */
-  if (STREQ(distro_str, "Unknown")) {
-    FILE *distro_file;
+   if (STREQ(distro_str, "Unknown")) {
+     FILE *distro_file;
 
-    char distro_name_str[MAX_STRLEN];
+     char distro_name_str[MAX_STRLEN];
 
-    if (FILE_EXISTS("/system/bin/getprop")) {
-      safe_strncpy(distro_str, "Android", MAX_STRLEN);
-      safe_strncpy(host_color, TLGN, MAX_STRLEN);
-    } else {
-      bool detected = false;
+     if (FILE_EXISTS("/system/bin/getprop")) {
+       safe_strncpy(distro_str, "Android", MAX_STRLEN);
+       safe_strncpy(host_color, TLGN, MAX_STRLEN);
+     } else {
+       bool detected = false;
 
-      /* Bad solution, as /etc/issue contains junk on some distros */
-      distro_file = fopen("/etc/issue", "r");
+       /* Bad solution, as /etc/issue contains junk on some distros */
+       distro_file = fopen("/etc/issue", "r");
 
-      if (distro_file != NULL) {
-        /* get the first 4 chars, that's all we need */
-        fscanf(distro_file, "%4s", distro_name_str);
-        fclose(distro_file);
+       if (distro_file != NULL) {
+         /* get the first 4 chars, that's all we need */
+         fscanf(distro_file, "%4s", distro_name_str);
+         fclose(distro_file);
 
-        if (STREQ(distro_name_str, "Kali")) {
-          safe_strncpy(distro_str, "Kali Linux", MAX_STRLEN);
-          detected = true;
-          safe_strncpy(host_color, TLBL, MAX_STRLEN);
-        } else if (STREQ(distro_name_str, "Back")) {
-          safe_strncpy(distro_str, "Backtrack Linux", MAX_STRLEN);
-          detected = true;
-          safe_strncpy(host_color, TLRD, MAX_STRLEN);
-        } else if (STREQ(distro_name_str, "Crun")) {
-          safe_strncpy(distro_str, "CrunchBang", MAX_STRLEN);
-          detected = true;
-          safe_strncpy(host_color, TDGY, MAX_STRLEN);
-        } else if (STREQ(distro_name_str, "LMDE")) {
-          safe_strncpy(distro_str, "LMDE", MAX_STRLEN);
-          detected = true;
-          safe_strncpy(host_color, TLGN, MAX_STRLEN);
-        } else if (STREQ(distro_name_str, "Debi") || STREQ(distro_name_str, "Rasp")) {
-          safe_strncpy(distro_str, "Debian", MAX_STRLEN);
-          detected = true;
-          safe_strncpy(host_color, TLRD, MAX_STRLEN);
-        } else if (STREQ(distro_name_str, "neon")) {
-          safe_strncpy(distro_str, "KDE neon", MAX_STRLEN);
-          detected = true;
-          safe_strncpy(host_color, TLRD, MAX_STRLEN);
-        }
-      }
-      
-      if (!detected) {
-        if (FILE_EXISTS("/etc/redhat-release")) {
-          safe_strncpy(distro_str, "Red Hat Linux", MAX_STRLEN);
-          safe_strncpy(host_color, TLRD, MAX_STRLEN);
-        } else if (FILE_EXISTS("/etc/fedora-release")) {
-          safe_strncpy(distro_str, "Fedora", MAX_STRLEN);
-          safe_strncpy(host_color, TLBL, MAX_STRLEN);
-        } else if (FILE_EXISTS("/etc/SuSE-release")) {
-          safe_strncpy(distro_str, "OpenSUSE", MAX_STRLEN);
-          safe_strncpy(host_color, TLGN, MAX_STRLEN);
-        } else if (FILE_EXISTS("/etc/arch-release")) {
-          safe_strncpy(distro_str, "Arch Linux", MAX_STRLEN);
-          safe_strncpy(host_color, TLCY, MAX_STRLEN);
-        } else if (FILE_EXISTS("/etc/gentoo-release")) {
-          safe_strncpy(distro_str, "Gentoo", MAX_STRLEN);
-          safe_strncpy(host_color, TLPR, MAX_STRLEN);
-        } else if (FILE_EXISTS("/etc/angstrom-version")) {
-          safe_strncpy(distro_str, "Angstrom", MAX_STRLEN);
-          safe_strncpy(host_color, TNRM, MAX_STRLEN);
-        } else if (FILE_EXISTS("/etc/manjaro-release")) {
-          safe_strncpy(distro_str, "Manjaro", MAX_STRLEN);
-          safe_strncpy(host_color, TLGN, MAX_STRLEN);
-        } else if (FILE_EXISTS("/etc/slackware-release")) {
-          safe_strncpy(distro_str, "Slackware", MAX_STRLEN);
-          safe_strncpy(host_color, TLBL, MAX_STRLEN);
-        } else if (FILE_EXISTS("/etc/lsb-release")) {
-          distro_file = fopen("/etc/lsb-release", "r");
-          fscanf(distro_file, "%s ", distro_name_str);
-          fclose(distro_file);
+         if (STREQ(distro_name_str, "Kali")) {
+           safe_strncpy(distro_str, "Kali Linux", MAX_STRLEN);
+           detected = true;
+           safe_strncpy(host_color, TLBL, MAX_STRLEN);
+         } else if (STREQ(distro_name_str, "Back")) {
+           safe_strncpy(distro_str, "Backtrack Linux", MAX_STRLEN);
+           detected = true;
+           safe_strncpy(host_color, TLRD, MAX_STRLEN);
+         } else if (STREQ(distro_name_str, "Crun")) {
+           safe_strncpy(distro_str, "CrunchBang", MAX_STRLEN);
+           detected = true;
+           safe_strncpy(host_color, TDGY, MAX_STRLEN);
+         } else if (STREQ(distro_name_str, "LMDE")) {
+           safe_strncpy(distro_str, "LMDE", MAX_STRLEN);
+           detected = true;
+           safe_strncpy(host_color, TLGN, MAX_STRLEN);
+         } else if (STREQ(distro_name_str, "Debi") || STREQ(distro_name_str, "Rasp")) {
+           safe_strncpy(distro_str, "Debian", MAX_STRLEN);
+           detected = true;
+           safe_strncpy(host_color, TLRD, MAX_STRLEN);
+         } else if (STREQ(distro_name_str, "neon")) {
+           safe_strncpy(distro_str, "KDE neon", MAX_STRLEN);
+           detected = true;
+           safe_strncpy(host_color, TLRD, MAX_STRLEN);
+         }
+       }
 
-          snprintf(distro_str, MAX_STRLEN, "%s", distro_name_str + 11);
-          safe_strncpy(host_color, TLRD, MAX_STRLEN);
+       if (!detected) {
+         if (FILE_EXISTS("/etc/redhat-release")) {
+           safe_strncpy(distro_str, "Red Hat Linux", MAX_STRLEN);
+           safe_strncpy(host_color, TLRD, MAX_STRLEN);
+         } else if (FILE_EXISTS("/etc/fedora-release")) {
+           safe_strncpy(distro_str, "Fedora", MAX_STRLEN);
+           safe_strncpy(host_color, TLBL, MAX_STRLEN);
+         } else if (FILE_EXISTS("/etc/SuSE-release")) {
+           safe_strncpy(distro_str, "OpenSUSE", MAX_STRLEN);
+           safe_strncpy(host_color, TLGN, MAX_STRLEN);
+         } else if (FILE_EXISTS("/etc/arch-release")) {
+           safe_strncpy(distro_str, "Arch Linux", MAX_STRLEN);
+           safe_strncpy(host_color, TLCY, MAX_STRLEN);
+         } else if (FILE_EXISTS("/etc/gentoo-release")) {
+           safe_strncpy(distro_str, "Gentoo", MAX_STRLEN);
+           safe_strncpy(host_color, TLPR, MAX_STRLEN);
+         } else if (FILE_EXISTS("/etc/angstrom-version")) {
+           safe_strncpy(distro_str, "Angstrom", MAX_STRLEN);
+           safe_strncpy(host_color, TNRM, MAX_STRLEN);
+         } else if (FILE_EXISTS("/etc/manjaro-release")) {
+           safe_strncpy(distro_str, "Manjaro", MAX_STRLEN);
+           safe_strncpy(host_color, TLGN, MAX_STRLEN);
+         } else if (FILE_EXISTS("/etc/slackware-release")) {
+           safe_strncpy(distro_str, "Slackware", MAX_STRLEN);
+           safe_strncpy(host_color, TLBL, MAX_STRLEN);
+         } else if (FILE_EXISTS("/etc/lsb-release")) {
+           distro_file = fopen("/etc/lsb-release", "r");
+           fscanf(distro_file, "%s ", distro_name_str);
+           fclose(distro_file);
 
-          if (STREQ(distro_str, "neon")) {
-            safe_strncpy(distro_str, "KDE neon", MAX_STRLEN);
-            detected = true;
-            safe_strncpy(host_color, TLGN, MAX_STRLEN);
-          return;}
-        } else if (FILE_EXISTS("/etc/os-release")) {
-          /*
-            TODO: Parse NAME or PRETTY_NAME from os-release
-            Until then, spit out an error message.
-          */
-          if (error)
-            ERR_REPORT("Failed to detect a Linux distro (1).");
-        } else {
-          safe_strncpy(distro_str, "Linux", MAX_STRLEN);
-          safe_strncpy(host_color, TLGY, MAX_STRLEN);
+           snprintf(distro_str, MAX_STRLEN, "%s", distro_name_str + 11);
+           safe_strncpy(host_color, TLRD, MAX_STRLEN);
 
-          if (error) {
-            ERR_REPORT("Failed to detect a Linux distro (2).");
-          }
-        }
-      }
-    }
-  }
+           if (STREQ(distro_str, "neon")) {
+             safe_strncpy(distro_str, "KDE neon", MAX_STRLEN);
+             detected = true;
+             safe_strncpy(host_color, TLGN, MAX_STRLEN);
+             return;
+           }
+         } else if (FILE_EXISTS("/etc/os-release")) {
+           /*
+             TODO: Parse NAME or PRETTY_NAME from os-release
+             Until then, spit out an error message.
+           */
+           if (error)
+             ERR_REPORT("Failed to detect a Linux distro (1).");
+         } else {
+           safe_strncpy(distro_str, "Linux", MAX_STRLEN);
+           safe_strncpy(host_color, TLGY, MAX_STRLEN);
 
-  return;
+           if (error) {
+             ERR_REPORT("Failed to detect a Linux distro (2).");
+           }
+         }
+       }
+     }
+   }
+
+   return;
 }
 
 void detect_cpu_linux(void) {
@@ -210,7 +204,8 @@ void detect_gpu_linux(void) {
       return;
     }else
     {
-      //idk
+      detect_gpu_lspci();//from neofetch
+      return;
     }
     
   }
@@ -218,13 +213,42 @@ void detect_gpu_linux(void) {
 
 }
 
+void detect_disk_linux(void) {
+  FILE *mnt_file;
+  struct mntent *ent;
+  struct statvfs fs;
+  unsigned long long disk_total = 0, disk_used = 0, disk_pct = 0;
 
+  if ((mnt_file = setmntent("/etc/mtab", "r"))) {
+    while ((ent = getmntent(mnt_file))) {
+      /* we only want to get the size of "real" disks (starting with /) */
+      if (ent->mnt_dir && ent->mnt_fsname && ent->mnt_fsname[0] == '/') {
+        if (!statvfs(ent->mnt_dir, &fs)) {
+          disk_total += (fs.f_blocks * fs.f_bsize);
+          disk_used += ((fs.f_blocks - fs.f_bfree) * fs.f_bsize);
+        } else {
+          ERR_REPORT("Could not stat filesystem for statistics (detect_disk).");
+        }
+      }
+    }
 
+    disk_total /= GB;
+    disk_used /= GB;
+    disk_pct = disk_total > 0 ? (disk_used * 100 / disk_total) : 0;
 
+    snprintf(disk_str, MAX_STRLEN, "%llu%s / %llu%s (%llu%%)", disk_used, "GiB", disk_total, "GiB",
+             disk_pct);
 
+    endmntent(mnt_file);
+  } else if (error) {
+    ERR_REPORT("Could not open /etc/mtab (detect_disk).");
+  }
+
+  return;
+}
 
 /// @brief Copied from detect_de(void); (src/plat/linux/detect.c, master branch)
-///  
+///  TODO: add more DEs
 void detect_de_linux(void) {
   char *curr_de;
 
@@ -312,12 +336,49 @@ void detect_gpu_xorg(void) {
       ERR_REPORT("Could not open an X display (detect_gpu).");
     }
   }
-  dlclose(libX11_so);
-  dlclose(libGL_so);
-  dlclose(libGLX_so);
+  cosmo_dlclose(libX11_so);
+  cosmo_dlclose(libGL_so);
+  cosmo_dlclose(libGLX_so);
   return;
 }
 
 
 void detect_gpu_wayland(void) {
+//workaound, idk how to fetch gpu info via wayland's api atm
+detect_gpu_lspci();
+  //uh...  has xwayland -> xorg ver?
+  //
+
+  //libEGL.so
+  // void* libEGL_so;//huh
+  //libegl-wayland.so
+  // void* libwayland_egl_so;//huh
+
+
+
+  //EGL+WAYLAND???
+  //EGL+OPENGL ES???
+}
+
+
+//translated from neofetch by microsoft copilot
+void detect_gpu_lspci(void) {
+  FILE *fp;
+  char gpu_name[MAX_STRLEN];
+
+  fp = popen("lspci -mm | awk -F '\"|\" \"|\\(' '/\"Display|\"3D|\"VGA/ {print $1 \" \" $3 \" \" "
+             "$(NF-1)}'",
+             "r");
+  if (fp == NULL) {
+    safe_strncpy(gpu_str, "Unknown", MAX_STRLEN);
+    ERR_REPORT("Failed to run command (detect_gpu).");
+    return;
+  }
+
+  if (fgets(gpu_name, sizeof(gpu_name) - 1, fp) != NULL) {
+    safe_strncpy(gpu_str, gpu_name, MAX_STRLEN);
+  }
+
+  /* close */
+  pclose(fp);
 }

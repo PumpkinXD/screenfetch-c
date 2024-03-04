@@ -18,6 +18,7 @@
 /* cosmo libc includes */
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
+#include <libc/dce.h>
 #include <dlfcn.h> /* for loading native functions */
 #include <libc/nt/windows.h>
 #include <libc/nt/winsock.h>
@@ -33,22 +34,25 @@
 #include "detect_plat.h"
 
 void detect_distro(void) {
-  struct utsname kern_info;
 
-  if (!(uname(&kern_info))) {
-    if (STREQ(kern_info.sysname, "Linux")) {
-      detect_distro_linux();
-      return;
-    } else if (STREQ(kern_info.sysname, "Windows")) {
-      detect_distro_windows();
-      return;
-    } else if (STREQ(kern_info.sysname, "Darwin")) {
-      // detect_distro_darwin();
-      return;
-    }
-
+  if (IsLinux()) {
+    detect_distro_linux();
+    return;
+  } else if (IsWindows()) {
+    detect_distro_windows();
+    return;
+  } else if (IsXnuSilicon()) {
+    /* code */
+    return;
+  } else if (IsXnu()) {
+    detect_distro_darwin_x86workaround();
+    return;
+  } else if (IsBsd()) {
+    /* code */
+    return;
   } else {
-    /*show errors?*/
+    /* show errors? */
+    /* code */
   }
 }
 void detect_host(void) {
@@ -57,7 +61,7 @@ void detect_host(void) {
   struct utsname host_info;
 
   if (!uname(&host_info)) {
-    if (STREQ(host_info.sysname, "Windows")) {
+    if (IsWindows()) {
 
       given_user = getlogin();
       gethostname(given_host, MAX_STRLEN);
@@ -79,14 +83,12 @@ void detect_host(void) {
 };
 void detect_kernel(void) {
   struct utsname kern_info;
-
   if (!(uname(&kern_info))) {
     snprintf(kernel_str, MAX_STRLEN, "%s %s %s", kern_info.sysname, kern_info.release,
              kern_info.machine);
   } else if (error) {
     ERR_REPORT("Could not detect kernel information.");
   }
-
   return;
 }
 void detect_uptime(void) {
@@ -106,55 +108,74 @@ void detect_uptime(void) {
   } else {
     ERR_REPORT("Could not detect system uptime.");
   }
-
   return;
 }
 void detect_pkgs(void){};
 void detect_cpu(void) {
-  struct utsname kern_info;
-  if (!(uname(&kern_info))) {
-    if (!(uname(&kern_info))) {
-      if (STREQ(kern_info.sysname, "Linux")) {
-        detect_cpu_linux();
-        return;
-      } else if (STREQ(kern_info.sysname, "Windows")) {
-        detect_cpu_windows();
-        return;
-      } else if (STREQ(kern_info.sysname, "Darwin")) {
-        if (STREQ(kern_info.machine, "aarch64")) {
-          detect_cpu_darwin();
-        }else{
-          detect_cpu_darwin_x86workaround();
-        }
-        return;
-      }
-    }
+  if (IsLinux()) {
+    detect_cpu_linux();
+    return;
+  } else if (IsWindows()) {
+    detect_cpu_windows();
+    return;
+  } else if (IsXnuSilicon()) {
+    detect_cpu_darwin();
+    return;
+  } else if (IsXnu()) {
+    detect_cpu_darwin_x86workaround();
+    return;
+  } else if (IsBsd()) {
+    /* code */
+    return;
+  } else {
+    /* show errors? */
+    /* code */
   }
 };
 void detect_gpu(void) {
-  struct utsname kern_info;
-  if (!(uname(&kern_info))) {
-    if (!(uname(&kern_info))) {
-      if (STREQ(kern_info.sysname, "Linux")) {
-        detect_gpu_linux();
-        return;
-      } else if (STREQ(kern_info.sysname, "Windows")) {
-        detect_gpu_windows();
-        return;
-      } else if (STREQ(kern_info.sysname, "Darwin")) {
-        if(STREQ(kern_info.machine,"aarch64"))
-        {
-          detect_gpu_darwin();
-        }else{
-          detect_gpu_darwin_x86workaround();
-        }
-        return;
-      }
-    }
+  if (IsLinux()) {
+    detect_gpu_linux();
+    return;
+  } else if (IsWindows()) {
+    detect_gpu_windows();
+    return;
+  } else if (IsXnuSilicon()) {
+    detect_gpu_darwin();
+    return;
+  } else if (IsXnu()) {
+    detect_gpu_darwin_x86workaround();
+    return;
+  } else if (IsBsd()) {
+    /* code */
+    return;
+  } else {
+    /* show errors? */
+    /* code */
+  } 
+};
+void detect_disk(void) {
+  if (IsLinux()) {
+    detect_disk_linux();
+    return;
+  } else if (IsWindows()) {
+    // detect_disk_windows();
+    return;
+  } else if (IsXnuSilicon()) {
+    // detect_disk_darwin();
+    return;
+  } else if (IsXnu()) {
+    // detect_disk_darwin_x86workaround();
+    return;
+  } else if (IsBsd()) {
+    /* code */
+    return;
+  } else {
+    /* show errors? */
+    /* code */
   }
 };
-void detect_disk(void){};
 void detect_mem(void) {
+  // kinda... inaccurate.. on macos(maybe including some linux/*nix distros???)
   struct sysinfo si;
   if (!sysinfo(&si)) {
     uint64_t total_mem_mib = si.totalram * si.mem_unit / (1024 * 1024);
@@ -166,8 +187,48 @@ void detect_mem(void) {
   }
 };
 void detect_shell(void){};
-void detect_res(void){};
-void detect_de(void){};
-void detect_wm(void){};
-void detect_wm_theme(void){};
-void detect_gtk(void){};
+void detect_res(void) {
+  if (IsLinux()) {
+    // detect_res_linux();
+    return;
+  } else if (IsWindows()) {
+    // detect_res_windows();
+    return;
+  } else if (IsXnuSilicon()) {
+    // detect_res_darwin();
+    return;
+  } else if (IsXnu()) {
+    // detect_res_darwin_x86workaround();
+    return;
+  } else if (IsBsd()) {
+    /* code */
+    return;
+  } else {
+    /* show errors? */
+    /* code */
+  }
+};
+void detect_de(void) {
+    if (IsLinux()) {
+      detect_de_linux();
+      return;
+    } else if (IsWindows()) {
+      // detect_de_windows();
+      return;
+    } else if (IsXnuSilicon()) {
+      // detect_de_darwin();
+      return;
+    } else if (IsXnu()) {
+      // detect_de_darwin_x86workaround();
+      return;
+    } else if (IsBsd()) {
+      /* code */
+      return;
+    } else {
+      /* show errors? */
+      /* code */
+    }
+}
+  void detect_wm(void){};
+  void detect_wm_theme(void){};
+  void detect_gtk(void){};

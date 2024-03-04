@@ -223,6 +223,55 @@ void detect_gpu_windows(void) {
   return;
 }
 
+void detect_disk_windows(void){
+  typedef uint32_t (*__attribute__((__ms_abi__))
+                    fnGetDiskFreeSpaceExA)(char *lpDirectoryName,
+                                           void *lpFreeBytesAvailableToCaller, // PULARGE_INTEGER
+                                           void *lpTotalNumberOfBytes,         // PULARGE_INTEGER
+                                           void *lpTotalNumberOfFreeBytes      // PULARGE_INTEGER
+  );
+  void *Kernel32_dll=cosmo_dlopen("Kernel32.dll", RTLD_LAZY);
+  if (!Kernel32_dll)
+  {
+    ERR_REPORT("Could not load Kernel32.dll.");
+    return;
+  }
+
+  fnGetDiskFreeSpaceExA pGetDiskFreeSpaceExA = cosmo_dlsym(Kernel32_dll, "GetDiskFreeSpaceExA");
+  if (pGetDiskFreeSpaceExA) {
+    char *disk_unit;
+    long long totalBytes, freeBytes, usedBytes, disk_used, disk_total, disk_percentage;
+
+    char drive[MAX_STRLEN];
+
+    FILE *disk_file;
+
+    disk_file = popen("cygpath -w / | head -c3", "r");
+    fscanf(disk_file, "%s", (char *)drive);
+    pclose(disk_file);
+
+    if (pGetDiskFreeSpaceExA(drive, NULL, &totalBytes, &freeBytes)) {
+      usedBytes = totalBytes - freeBytes;
+
+      if (usedBytes >= GB) {
+        disk_used = usedBytes / GB;
+        disk_unit = "G";
+      } else {
+        disk_used = usedBytes / MB;
+        disk_unit = "M";
+      }
+
+      disk_total = totalBytes / GB;
+      disk_percentage = (usedBytes * 100) / totalBytes;
+
+      snprintf(disk_str, MAX_STRLEN, "%lld%s / %lldG (%lld%%) [%s]", disk_used, disk_unit,
+               disk_total, disk_percentage, drive);
+    }
+  }
+  cosmo_dlclose(Kernel32_dll);
+  return;
+}
+
 /// @brief GetRegU8StrValue - WIN32 utility functions (may fail)
 /// @param predefined kNtHkeyClassesRoot kNtHkeyCurrentUser kNtHkeyLocalMachine kNtHkeyUsers
 /// @param pathkey The path of a registry key relative to the key specified by the `predefined`
