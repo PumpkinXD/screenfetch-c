@@ -21,4 +21,11 @@ build/
 .vscode
 
 #cosmocc
-cosmocc*
+cosmocc*/
+
+#kate stuff???
+.cache*/
+
+#other stuff
+compile_commands.json
+.clangd

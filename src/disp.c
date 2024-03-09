@@ -12,8 +12,9 @@
 #include <string.h>
 #include <stdbool.h>
 
-/* "text required here lol" */
-#include<sys/utsname.h>
+/* for outputing default linux logo on an unknown linux distro */
+#include <unistd.h>// dce.h need this, idk why
+#include <libc/dce.h>
 
 /* program includes */
 #include "version.h"
@@ -288,17 +289,11 @@ void main_ascii_output(char *data[], char *data_names[]) {
     process_data(data, data_names, dragonflybsd_logo, 23, DETECTED_ARR_LEN, TNRM, TNRM, TNRM);
   } else if (STREQ(data[1], "SunOS")) {
     process_data(data, data_names, solaris_logo, 17, DETECTED_ARR_LEN, TNRM, TNRM, TNRM);
-  } else {
+  } else if(IsLinux()){
     /*print kernel's logo if cannot find a logo*/
-    struct utsname kern_info;
-    if (!(uname(&kern_info))) {
-      if (STREQ(kern_info.sysname,"Linux")){
-        process_data(data, data_names, linux_logo, 18, DETECTED_ARR_LEN, TLGY, TNRM, TLGY);
-      } else {
-        ERR_REPORT("Could not find a logo for the distro.");}
-    } else {
-      ERR_REPORT("Could not find a logo for the distro.");
-    }
+    process_data(data, data_names, linux_logo, 18, DETECTED_ARR_LEN, TLGY, TNRM, TLGY);
+  } else {
+    ERR_REPORT("Could not find a logo for the distro.");
   }
   return;
 }
