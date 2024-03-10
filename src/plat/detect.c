@@ -237,7 +237,6 @@ void detect_shell(void){
   
 };
 void detect_res(void) {
-  printf("detect_res\n");
   if (IsLinux()) {
     // detect_res_linux();
     return;
