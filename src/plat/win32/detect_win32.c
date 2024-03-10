@@ -27,6 +27,7 @@
 #include <libc/nt/runtime.h>
 #include <libc/nt/process.h>
 #include <libc/nt/struct/processentry32.h>
+#include <libc/nt/systeminfo.h>
 
 /* program includes */
 #include "../../detect.h"
@@ -38,29 +39,26 @@
 #include "../../error_flag.h"
 #include "../detect_plat.h"
 
-typedef struct win32ProcessInfoSimp
-{
-    uint32_t processID;
-    uint32_t parentProcessID;
-    char16_t processName[260];
+typedef struct win32ProcessInfoSimp {
+  uint32_t processID;
+  uint32_t parentProcessID;
+  char16_t processName[260];
 } SimpWin32ProcessInfo;
-
-
 
 static char *GetRegU8StrValue(int64_t predefined, const char16_t *pathkey,
                               const char16_t *key); // use free(1) to deallocate
 static char *utf16_to_utf8(const char16_t *input);
 static int isSpecialProcess(const char16_t *processName);
 static SimpWin32ProcessInfo GetSimpWin32ProcessInfo(uint32_t pid);
-static char* getParentShellProcessName();
+static char *getParentShellProcessName();
 
-    /***
-     *
-     *  Modified from detect_distro(void); (src/plat/win32/detect.c, master branch)
-     *
-     *
-     */
-    void detect_distro_windows(void) {
+/***
+ *
+ *  Modified from detect_distro(void); (src/plat/win32/detect.c, master branch)
+ *
+ *
+ */
+void detect_distro_windows(void) {
 
   // TODO:reactos, wine,mingw, etc.
   //@see https://reactos.org/forum/viewtopic.php?p=129190#p129190
@@ -239,16 +237,15 @@ void detect_gpu_windows(void) {
   return;
 }
 
-void detect_disk_windows(void){
-  typedef uint32_t (*__attribute__((__ms_abi__))fnGetDiskFreeSpaceExA)(
-                                          char *lpDirectoryName,
-                                          void *lpFreeBytesAvailableToCaller, // PULARGE_INTEGER
-                                          void *lpTotalNumberOfBytes,         // PULARGE_INTEGER
-                                          void *lpTotalNumberOfFreeBytes      // PULARGE_INTEGER
+void detect_disk_windows(void) {
+  typedef uint32_t (*__attribute__((__ms_abi__))
+                    fnGetDiskFreeSpaceExA)(char *lpDirectoryName,
+                                           void *lpFreeBytesAvailableToCaller, // PULARGE_INTEGER
+                                           void *lpTotalNumberOfBytes,         // PULARGE_INTEGER
+                                           void *lpTotalNumberOfFreeBytes      // PULARGE_INTEGER
   );
-  void *Kernel32_dll=cosmo_dlopen("Kernel32.dll", RTLD_LAZY);
-  if (!Kernel32_dll)
-  {
+  void *Kernel32_dll = cosmo_dlopen("Kernel32.dll", RTLD_LAZY);
+  if (!Kernel32_dll) {
     ERR_REPORT("Could not load Kernel32.dll.");
     return;
   }
@@ -262,9 +259,17 @@ void detect_disk_windows(void){
 
     FILE *disk_file;
 
-    disk_file = popen("cygpath -w / | head -c3", "r");
-    fscanf(disk_file, "%s", (char *)drive);
-    pclose(disk_file);
+    char buf[MAX_STRLEN];
+    if (GetSystemDirectoryA(buf, MAX_STRLEN)) {
+      snprintf(drive, MAX_STRLEN, "%c:\\", buf[0]);
+    } else {
+      if (getenv("SystemDrive")) { // GetEnvironmentVariable("SystemDrive", buf, MAX_STRLEN)
+        char *sysdrive = getenv("SystemDrive");
+        snprintf(drive, MAX_STRLEN, "%c:\\", sysdrive[0]);
+      } else {
+        snprintf(drive, MAX_STRLEN, "C:\\");
+      }
+    }
 
     if (pGetDiskFreeSpaceExA(drive, NULL, &totalBytes, &freeBytes)) {
       usedBytes = totalBytes - freeBytes;
@@ -287,22 +292,40 @@ void detect_disk_windows(void){
   cosmo_dlclose(Kernel32_dll);
   return;
 }
-void detect_shell_windows(void){
-// Credits: fastfetch devs, microsoft copilot and baidu wenxinyiyan
-char* shell_name=getParentShellProcessName();
-if (shell_name) {
-  safe_strncpy(shell_str, shell_name, MAX_STRLEN);
-  // strncpy(shell_str, shell_name, MAX_STRLEN);
-  free(shell_name);
-  return;
+void detect_shell_windows(void) {
+  // Credits: fastfetch devs, microsoft copilot and baidu wenxinyiyan
+  char *shell_name = getParentShellProcessName();
+  if (shell_name) {
+    safe_strncpy(shell_str, shell_name, MAX_STRLEN);
+
+    free(shell_name);
+    return;
+  }
 }
+void detect_res_windows(void) {
+  typedef int (*__attribute__((__ms_abi__)) fnGetSystemMetrics)(int nIndex);
+  int width = 0;
+  int height = 0;
+  void *User32_dll = cosmo_dlopen("User32.dll", RTLD_LAZY);
+  if (User32_dll) {
+    fnGetSystemMetrics pGetSystemMetrics = cosmo_dlsym(User32_dll, "GetSystemMetrics");
+    if (pGetSystemMetrics) {
+      width = pGetSystemMetrics(78 /*SM_CXVIRTUALSCREEN*/);
+      height = pGetSystemMetrics(79 /*SM_CYVIRTUALSCREEN*/);
+    }
+    cosmo_dlclose(User32_dll);
+  } else {
+    snprintf(res_str, MAX_STRLEN, "failed to call res");
+    return;
+  }
+  snprintf(res_str, MAX_STRLEN, "%dx%d", width, height);
 }
 
-
-
-
-
-
+/**
+ *
+ * static function definitions starts here
+ *
+ */
 
 /// @brief GetRegU8StrValue - WIN32 utility functions (may fail)
 /// @param predefined kNtHkeyClassesRoot kNtHkeyCurrentUser kNtHkeyLocalMachine kNtHkeyUsers
@@ -420,10 +443,26 @@ static char __attribute__((warn_unused_result)) * utf16_to_utf8(const char16_t *
 }
 
 int isSpecialProcess(const char16_t *processName) {
-  const char16_t *specialProcesses[] = {u"sudo",   u"su",        u"doas",      u"strace",
-                                    u"sshd",   u"gdb",       u"lldb",      u"guake-wrapped",
-                                    u"python", u"screenfetch-c.com"};
-  const char16_t* currentProcessName;
+  const char16_t *specialProcesses[] = {u"sudo",
+                                        u"sudo.exe",
+                                        u"gsudo.exe",
+                                        u"su",
+                                        u"su.exe",
+                                        u"doas",
+                                        u"doas.exe",
+                                        u"strace",
+                                        u"strace.exe",
+                                        u"sshd",
+                                        u"sshd.exe",
+                                        u"gdb",
+                                        u"gdb.exe",
+                                        u"lldb",
+                                        u"lldb.exe",
+                                        u"guake-wrapped",
+                                        u"guake-wrapped.exe",
+                                        u"python",
+                                        u"python.exe",
+                                        u"screenfetch-c.com"};
   int numSpecialProcesses = sizeof(specialProcesses) / sizeof(specialProcesses[0]);
   for (int i = 0; i < numSpecialProcesses; i++) {
     if (strcasecmp16(processName, specialProcesses[i]) == 0) {
@@ -432,100 +471,39 @@ int isSpecialProcess(const char16_t *processName) {
   }
   return 0;
 }
-static SimpWin32ProcessInfo GetSimpWin32ProcessInfo(uint32_t processID){
-  SimpWin32ProcessInfo info={0};
-  int64_t hSnapshot = CreateToolhelp32Snapshot(0x00000002/*TH32CS_SNAPPROCESS*/, 0);
-  if (hSnapshot){
-    struct NtProcessEntry32 pe32={0};
+static SimpWin32ProcessInfo GetSimpWin32ProcessInfo(uint32_t processID) {
+  SimpWin32ProcessInfo info = {0};
+  int64_t hSnapshot = CreateToolhelp32Snapshot(0x00000002 /*TH32CS_SNAPPROCESS*/, 0);
+  if (hSnapshot) {
+    struct NtProcessEntry32 pe32 = {0};
     pe32.dwSize = sizeof(pe32);
-            if (Process32First(hSnapshot, &pe32))
-        {
-            do
-            {
-                if (pe32.th32ProcessID == processID)
-                  { info.processID = pe32.th32ProcessID;
-                    info.parentProcessID = pe32.th32ParentProcessID;
-                    strncat16(info.processName, pe32.szExeFile,sizeof(info.processName) / sizeof(char16_t));
-                    break;}
-                }while (Process32Next(hSnapshot, &pe32));
-                }
-                CloseHandle(hSnapshot);
+    if (Process32First(hSnapshot, &pe32)) {
+      do {
+        if (pe32.th32ProcessID == processID) {
+          info.processID = pe32.th32ProcessID;
+          info.parentProcessID = pe32.th32ParentProcessID;
+          strncat16(info.processName, pe32.szExeFile, sizeof(info.processName) / sizeof(char16_t));
+          break;
+        }
+      } while (Process32Next(hSnapshot, &pe32));
+    }
+    CloseHandle(hSnapshot);
   }
   return info;
 }
 
-char* getParentShellProcessName(){
-  uint32_t  pid=GetCurrentProcessId();
-  SimpWin32ProcessInfo pinfo=GetSimpWin32ProcessInfo(GetCurrentProcessId());
+char *getParentShellProcessName() {
+  uint32_t pid = GetCurrentProcessId();
+  SimpWin32ProcessInfo pinfo = GetSimpWin32ProcessInfo(GetCurrentProcessId());
+  char16_t currentProcessName[260] = {0};
+  memcpy(currentProcessName, pinfo.processName, 260 * sizeof(char16_t));
   uint32_t ppid = pinfo.parentProcessID;
-  SimpWin32ProcessInfo ppinfo=GetSimpWin32ProcessInfo(pinfo.parentProcessID);
-  while (isSpecialProcess(ppinfo.processName)) {
+  SimpWin32ProcessInfo ppinfo = GetSimpWin32ProcessInfo(pinfo.parentProcessID);
+  while (isSpecialProcess(ppinfo.processName) /*||
+         !strcasecmp16(ppinfo.processName, currentProcessName)*/) {
     memmove(&pinfo, &ppinfo, sizeof(SimpWin32ProcessInfo));
-    ppinfo=GetSimpWin32ProcessInfo(pinfo.parentProcessID);
+    ppinfo = GetSimpWin32ProcessInfo(pinfo.parentProcessID);
   }
-  char* shell_str=utf16_to_utf8(ppinfo.processName);
+  char *shell_str = utf16_to_utf8(ppinfo.processName);
   return shell_str;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// char* getParentShellProcessName(uint32_t* ppid_ptr){
-//   printf("called getParentShellProcessName\n");
-//   const uint32_t TH32CS_SNAPPROCESS = 0x00000002;
-//   uint32_t  pid=GetCurrentProcessId();
-//   int64_t hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-//   if (!hSnapshot) {
-//     printf( "failed to call CreateToolhelp32Snapshot\n");
-//     ERR_REPORT("failed to call CreateToolhelp32Snapshot\n");
-//     return NULL;
-//   }
-// struct NtProcessEntry32 pe32={0};
-
-// pe32.dwSize = sizeof(pe32);
-// printf("pe32.dwSize is %d\n",pe32.dwSize);
-// if (!Process32First(hSnapshot, &pe32)) {
-//   CloseHandle(hSnapshot);
-//   printf("failed to call Process32First\n");
-//   return NULL;
-// }
-// int sh_found_flag=0;
-// do {
-//   if (pe32.th32ProcessID == pid) {
-//     if (isSpecialProcess(pe32.szExeFile)) {
-//       pid = pe32.th32ParentProcessID;
-//       continue;
-//     } else {
-//       CloseHandle(hSnapshot);
-//       sh_found_flag=1;
-//       break;
-//     }
-//   }
-// } while (Process32Next(hSnapshot, &pe32));
-// if(!sh_found_flag){
-//   CloseHandle(hSnapshot);
-//   printf("failed to find ppid\n");
-//   return NULL;
-// }
-// if (ppid_ptr) {
-//   printf( "ppid is %d\n",pe32.th32ProcessID);
-// *ppid_ptr=pe32.th32ProcessID;
-// }
-// char* ret_str=utf16_to_utf8(pe32.szExeFile);
-// printf("returning from getParentShellProcessName\n");
-// return ret_str;
-// }

@@ -158,7 +158,7 @@ void detect_disk(void) {
     detect_disk_linux();
     return;
   } else if (IsWindows()) {
-    // detect_disk_windows();
+    detect_disk_windows();
     return;
   } else if (IsXnuSilicon()) {
     // detect_disk_darwin();
@@ -237,11 +237,12 @@ void detect_shell(void){
   
 };
 void detect_res(void) {
+  printf("detect_res\n");
   if (IsLinux()) {
     // detect_res_linux();
     return;
   } else if (IsWindows()) {
-    // detect_res_windows();
+    detect_res_windows();
     return;
   } else if (IsXnuSilicon()) {
     // detect_res_darwin();
@@ -256,7 +257,7 @@ void detect_res(void) {
     /* show errors? */
     /* code */
   }
-};
+}
 void detect_de(void) {
     if (IsLinux()) {
       detect_de_linux();

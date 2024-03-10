@@ -55,6 +55,7 @@ void split_uptime(long uptime, unsigned int *secs, unsigned int *mins, unsigned 
   takes a screenshot and saves it to $HOME/screenfetch_screenshot.png
 */
 void take_screenshot(bool verbose) {
+  //TODO:make this function working on cosmo (Pumpkin)
 #if !defined(__CYGWIN__) && !defined(__MSYS__) && !defined(__MINGW32__)
   int call_status = 1;
   char file_loc[MAX_STRLEN];

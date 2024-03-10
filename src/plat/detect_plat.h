@@ -29,6 +29,7 @@ void detect_disk_windows(void);
 void detect_shell_windows(void);
 
 // void detect_res_linux(void);
+void detect_res_windows(void);
 
 void detect_de_linux(void);
 
