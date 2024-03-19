@@ -153,6 +153,9 @@ void detect_distro_windows(void) {
 
   return;
 }
+void detect_pkgs_windows(void) {
+  //winget (win10+), scoop, 
+}
 void detect_cpu_windows(void) {
 
   const int key_read = 0x00020019;

@@ -215,6 +215,8 @@ typedef struct __GLXcontextRec *GLXContext;
 #define DefaultScreen(dpy) (((_XPrivDisplay)(dpy))->default_screen)
 #define ScreenOfDisplay(dpy, scr) (&((_XPrivDisplay)(dpy))->screens[scr])
 #define DefaultRootWindow(dpy) (ScreenOfDisplay(dpy, DefaultScreen(dpy))->root)
+#define WidthOfScreen(s)	((s)->width)
+#define HeightOfScreen(s)	((s)->height)
 
 
 
@@ -222,6 +224,10 @@ typedef struct __GLXcontextRec *GLXContext;
 typedef Display *(*fnXOpenDisplay)(const char *display_name);
 typedef int(*fnXFree)(void* data);
 typedef int(*fnXCloseDisplay)(Display* display);
+
+typedef Screen*(*fnXDefaultScreenOfDisplay)(Display* display);
+
+
 
 // XVisualInfo* glXChooseVisual( Display *dpy, int screen,int *attribList )
 typedef XVisualInfo *(*fnglXChooseVisual)(Display *dpy, int screen, int *attribList);

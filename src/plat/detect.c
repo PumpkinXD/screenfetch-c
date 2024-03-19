@@ -82,6 +82,8 @@ void detect_host(void) {
   }
 };
 void detect_kernel(void) {
+  //reports 0.0.0 on windows if built with cosmocc 3.3.2
+  //hmmmmm shall I write "detect_kernel_windowns()" or stay at 3.2.4 untill patched???
   struct utsname kern_info;
   if (!(uname(&kern_info))) {
     snprintf(kernel_str, MAX_STRLEN, "%s %s %s", kern_info.sysname, kern_info.release,
@@ -110,7 +112,11 @@ void detect_uptime(void) {
   }
   return;
 }
-void detect_pkgs(void){};
+void detect_pkgs(void){
+  if (IsLinux()) {
+  detect_pkgs_linux();
+  }
+};
 void detect_cpu(void) {
   if (IsLinux()) {
     detect_cpu_linux();
@@ -238,7 +244,7 @@ void detect_shell(void){
 };
 void detect_res(void) {
   if (IsLinux()) {
-    // detect_res_linux();
+    detect_res_linux();
     return;
   } else if (IsWindows()) {
     detect_res_windows();
