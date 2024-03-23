@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   
 jobs:  
-  build_and_release:  
+  build_and_test_on_ubuntu:  
     runs-on: ubuntu-latest  
     steps:  
       - name: Checkout  
@@ -20,7 +20,7 @@ jobs:
           xmake-version: latest  
   
       - name: Build with xmake  
-        run: xmake  
+        run: xmake -y
 
       - name: Runs on ubuntu-latest
         run: xmake run  
