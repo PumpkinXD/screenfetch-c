@@ -203,7 +203,8 @@ void detect_shell(void){
 
     if (!(shell_name = getenv("SHELL"))) {
       if (error)
-        ERR_REPORT("Could not detect a shell - $SHELL not defined.");
+        // ERR_REPORT("Could not detect a shell - $SHELL not defined.");
+        safe_strncpy(shell_str, "Could not detect a shell", MAX_STRLEN);
 
       return;
     }
