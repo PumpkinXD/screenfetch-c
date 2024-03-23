@@ -18,8 +18,8 @@ jobs:
         uses: xmake-io/github-action-setup-xmake@v1  
         with:  
           xmake-version: latest  
-          
-      - name: config APE
+
+      - name: Setup APE loader
         run: |
           sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
           sudo chmod +x /usr/bin/ape
@@ -27,16 +27,18 @@ jobs:
           sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
 
       - name: Build with xmake  
-        run: xmake -yvD
-
-      - name: Runs on ubuntu-latest
-        run: xmake run  
+        run: |
+          export SHELL="/GH_ACTION_SH"
+          xmake -yvD  
   
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
             name: Artifact_Files
             path: build/linux/x86_64
+            
+      - name: Runs on ubuntu-latest
+        run: xmake run
       # - name: Upload Build Artifacts to GitHub Release  
       #   uses: svenstaro/upload-release-action@v2.9.0  
       #   with:  
