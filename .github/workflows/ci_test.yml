@@ -39,8 +39,8 @@ jobs:
             
       - name: Runs on ubuntu-latest
         run: | 
-          xmake run -ftrace
-          xmake run -strace
+          xmake run "screenfetch-c.com" -ftrace
+          xmake run "screenfetch-c.com" -strace
           echo "test done"
       # - name: Upload Build Artifacts to GitHub Release  
       #   uses: svenstaro/upload-release-action@v2.9.0  
