@@ -38,7 +38,10 @@ jobs:
             path: build/linux/x86_64
             
       - name: Runs on ubuntu-latest
-        run: xmake run
+        run: | 
+          xmake run -ftrace
+          xmake run -strace
+          echo "test done"
       # - name: Upload Build Artifacts to GitHub Release  
       #   uses: svenstaro/upload-release-action@v2.9.0  
       #   with:  
