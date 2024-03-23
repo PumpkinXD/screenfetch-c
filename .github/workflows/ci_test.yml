@@ -20,7 +20,7 @@ jobs:
           xmake-version: latest  
   
       - name: Build with xmake  
-        run: xmake -y
+        run: xmake -yvD
 
       - name: Runs on ubuntu-latest
         run: xmake run  
