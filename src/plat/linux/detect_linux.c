@@ -360,6 +360,8 @@ void detect_disk_linux(void) {
 }
 void detect_res_linux(void) {
   const char *sessionType = getenv("XDG_SESSION_TYPE");
+  fprintf(stderr,"just called getenv()\n");
+  if(!sessionType){return};
   if (STREQ(sessionType, "wayland")) {
     fprintf(stderr,"before detect_res_wayland()\n");
     detect_res_wayland();
@@ -373,6 +375,7 @@ void detect_res_linux(void) {
     detect_res_drm();
     return;
   }
+  fprintf(stderr,"unreachable?\n");
 }
 
 /// @brief Copied from detect_de(void); (src/plat/linux/detect.c, master branch)
