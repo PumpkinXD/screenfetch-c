@@ -247,6 +247,7 @@ void detect_shell(void){
 };
 void detect_res(void) {
   if (IsLinux()) {
+    fprintf(stderr,"before detect_res_linux()\n");
     detect_res_linux();
     return;
   } else if (IsWindows()) {
@@ -262,6 +263,7 @@ void detect_res(void) {
     /* code */
     return;
   } else {
+    fprintf(stderr,"wtf\n");
     /* show errors? */
     /* code */
   }
