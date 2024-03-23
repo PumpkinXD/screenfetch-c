@@ -5,7 +5,7 @@ set_toolchains("@cosmocc")
 target("screenfetch-c.com")
     set_kind("binary")
     add_files("src/**.c")
-    add_cflags("-mcosmo")
+    add_cflags("-mcosmo", {force = true})
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
