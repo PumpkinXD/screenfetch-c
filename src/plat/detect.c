@@ -115,6 +115,8 @@ void detect_uptime(void) {
 void detect_pkgs(void){
   if (IsLinux()) {
   detect_pkgs_linux();
+  }else if (IsXnu()) {
+  detect_pkgs_darwin();
   }
 };
 void detect_cpu(void) {

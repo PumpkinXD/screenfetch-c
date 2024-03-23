@@ -155,13 +155,32 @@ void detect_distro_linux(void) {
 void detect_pkgs_linux(void) {
 
   //(default) package manager names
-  char *package_manager_names[]={"UnkownPKG","dpkg","pkg","rpm","pacman"};
+  char *package_manager_names[] = {"UnkownPKG", "dpkg", "pkg", "rpm", "pacman"};
   int main_pkg_type = 0; // 0==unknown 1==dpkg 2==pkg 3==rpm 4==pacman
-  char other_packages[MAX_STRLEN] = {0}; // snap, flatpak, brew, nix. etc... (optional managers)
+  // char other_packages[MAX_STRLEN] = {0}; // snap, flatpak, brew, nix. etc... (optional managers)
+  typedef struct {
+    char *pkgmanname;
+    int pkgs;
+  } opt_pkg;
+  opt_pkg opt_pkgs[4] = {{"flatpak", 0}, {"snap", 0}, {"brew", 0}, {"nix", 0}};
+
+  if (has_command("flatpak")) {
+    glob_t gl_flatpak;
+    // https://github.com/fastfetch-cli/fastfetch/blob/50da7cabd61c6c7e7930375de4920b93c41aea07/src/detection/packages/packages_linux.c#L198
+    if (!glob("/var/lib/flatpak/runtime/*", GLOB_NOSORT, NULL, &gl_flatpak)) {
+      opt_pkgs[0].pkgs += gl_flatpak.gl_pathc;
+      // printf("%d \n", gl_flatpak.gl_pathc);
+      globfree(&gl_flatpak);
+    }
+  }
+  if (has_command("snap")) {
+    ///TODO: count snap pkgs
+
+  }
 
   // parts from master branch
   FILE *pkgs_file;
-  int packages = 0;//main pkgs, as original src suggest (default package manager)
+  int packages = 0; // main pkgs, as original src suggest (default package manager)
 
   glob_t gl;
 
@@ -169,7 +188,7 @@ void detect_pkgs_linux(void) {
       STREQ(distro_str, "Chakra") || STREQ(distro_str, "Manjaro")) {
     if (!(glob("/var/lib/pacman/local/*", GLOB_NOSORT, NULL, &gl))) {
       packages = gl.gl_pathc;
-      main_pkg_type=4;
+      main_pkg_type = 4;
     } else if (error) {
       ERR_REPORT("Failure while globbing packages.");
     }
@@ -221,7 +240,7 @@ void detect_pkgs_linux(void) {
     pkgs_file = popen("rpm -qa 2> /dev/null | wc -l", "r");
     fscanf(pkgs_file, "%d", &packages);
     pclose(pkgs_file);
-    main_pkg_type=3;
+    main_pkg_type = 3;
   } else if (STREQ(distro_str, "Angstrom")) {
     pkgs_file = popen("opkg list-installed 2> /dev/null | wc -l", "r");
     fscanf(pkgs_file, "%d", &packages);
@@ -234,12 +253,19 @@ void detect_pkgs_linux(void) {
       ERR_REPORT("Packages cannot be detected on an unknown "
                  "Linux distro.");
   }
-if (main_pkg_type) {
-  snprintf(pkgs_str, MAX_STRLEN, "%d (%s)", packages,package_manager_names[main_pkg_type]);
-}else {
-  snprintf(pkgs_str, MAX_STRLEN, "%d", packages);
-}
-  //hm... maybe I...
+  if (main_pkg_type) {
+    int letters_written =
+        snprintf(pkgs_str, MAX_STRLEN, "%d (%s)", packages, package_manager_names[main_pkg_type]);
+    for (int i; i < 4; i++) {
+      if (opt_pkgs[i].pkgs) {
+        letters_written = snprintf(pkgs_str + letters_written, MAX_STRLEN, ", %d (%s)",
+                                   opt_pkgs[i].pkgs, opt_pkgs[i].pkgmanname);
+      }
+    }
+  } else {
+    snprintf(pkgs_str, MAX_STRLEN, "%d", packages);
+  }
+  // hm... maybe I...
 
   return;
 }
@@ -385,6 +411,7 @@ void detect_de_linux(void) {
  * static function definitions starts here
  *
  */
+
 void detect_gpu_xorg(void) {
   void *libX11_so = cosmo_dlopen("libX11.so", RTLD_LAZY);
   void *libGL_so = cosmo_dlopen("libGL.so", RTLD_LAZY);

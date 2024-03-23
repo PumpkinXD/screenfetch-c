@@ -29,3 +29,6 @@ cosmocc*/
 #other stuff
 compile_commands.json
 .clangd
+GTAGS
+GRTAGS
+GPATH

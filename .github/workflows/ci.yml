@@ -1,0 +1,39 @@
+# Credits: wenxinyiyan(baidu's "chatgpt"), xmake devs
+name: Build and Release  
+  
+on:  
+  push:
+        tags:
+            - "v*"
+  release:  
+    types: [created]  
+#   pull_request:
+  
+jobs:  
+  build_and_release:  
+    runs-on: ubuntu-latest  
+    steps:  
+      - name: Checkout  
+        uses: actions/checkout@v4.1.1
+  
+      - name: Setup xmake  
+        uses: xmake-io/github-action-setup-xmake@v1  
+        with:  
+          xmake-version: latest  
+  
+      - name: Build with xmake  
+        run: xmake  
+  
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+            name: screenfetch-c.com
+            path: build/linux/x86_64/release/screenfetch-c.com
+      - name: Upload Build Artifacts to GitHub Release  
+        uses: svenstaro/upload-release-action@v2.9.0  
+        with:  
+          repo_token: ${{ secrets.GITHUB_TOKEN }}  
+          file: build/linux/x86_64/release/screenfetch-c.com
+          asset_name:  screenfetch-c.com
+          tag: ${{ github.ref }}  
+          overwrite: true

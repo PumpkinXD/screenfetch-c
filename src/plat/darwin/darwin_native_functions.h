@@ -10,7 +10,16 @@ const uint32_t kIOMasterPortDefault = 0;
 const uint32_t kIOReturnSuccess = 0;
 const uint32_t kNilOptions = 0;
 
-/*IDK which dylib contains these functions...*/
+/*
+    //IO* functions
+   void* ioKitHandle = dlopen("/System/Library/Frameworks/IOKit.framework/IOKit", RTLD_LAZY);
+   //CF* functions
+   void* coreFoundationHandle = dlopen("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation", RTLD_LAZY);
+   //CG* functions
+   void* applicationServiceHandle=dlopen("/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices",RTLD_LAZY);
+   //libSystem.dylib (sysctlbyname)
+   void* libSystem_dylib = dlopen("/usr/lib/libSystem.B.dylib", RTLD_LAZY);
+*/
 
 // returns CFArrayRef
 typedef void *(*fnCFStringCreateArrayBySeparatingStrings)(
@@ -31,12 +40,12 @@ typedef void *(*fnCFPreferencesCopyAppValue)(
 // returns int, aarch64/amd64 mac ver
 typedef int32_t (*fnCFStringGetIntValue)(
     // CFStringRef
-    void *str);
+    const void *str);
 
 // returns const void*
 typedef const void *(*fnCFArrayGetValueAtIndex)(
     // CFArrayRef
-    void *theArray,
+   const void *theArray,
     // CFIndex
     int64_t idx);
 
@@ -50,6 +59,9 @@ typedef uint8_t (*fnCFStringGetCString)(
     int64_t bufferSize,
     // CFStringEncoding
     uint32_t encoding);
+
+//CFIndex CFArrayGetCount(CFArrayRef theArray);
+typedef int64_t(*fnCFArrayGetCount)(const void* theArray);
 
 // returns CFStringRef
 // CFSTR macro N/A in cosmo libc

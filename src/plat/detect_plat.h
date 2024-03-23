@@ -9,6 +9,7 @@ void detect_distro_darwin_x86workaround(void);
 void detect_distro_windows(void);
 
 void detect_pkgs_linux(void);
+void detect_pkgs_darwin(void);
 void detect_pkgs_windows(void);
 
 void detect_cpu_linux(void);
@@ -35,5 +36,13 @@ void detect_res_linux(void);
 void detect_res_windows(void);
 
 void detect_de_linux(void);
+// void detect_de_windows(void);
+
+
+
+/*
+* misc functions?
+*/
+int has_command(const char *cmd);
 
 #endif
