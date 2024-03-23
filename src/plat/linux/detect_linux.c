@@ -361,12 +361,15 @@ void detect_disk_linux(void) {
 void detect_res_linux(void) {
   const char *sessionType = getenv("XDG_SESSION_TYPE");
   if (STREQ(sessionType, "wayland")) {
+    fprintf(stderr,"before detect_res_wayland()\n");
     detect_res_wayland();
     return;
   } else if (STREQ(sessionType, "x11")) {
+    fprintf(stderr,"before detect_res_xorg()\n");
     detect_res_xorg();
     return;
   } else {
+    fprintf(stderr,"before detect_res_drm()\n");
     detect_res_drm();
     return;
   }
@@ -555,7 +558,7 @@ void detect_res_xorg(void) {
   return;
 };
 void detect_res_drm(void){
-
+snprintf(res_str, MAX_STRLEN, "nope)" );
     /// TODO: "translate" following script(from neofetch) thing to C
     ///
     ///
