@@ -76,19 +76,31 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
   }
-
+  fprintf(stderr,"before detect_distro()");
   detect_distro();
+  fprintf(stderr,"before detect_host()");
   detect_host();
+  fprintf(stderr,"before detect_kernel()");
   detect_kernel();
+  fprintf(stderr,"before detect_uptime()");
   detect_uptime();
+  fprintf(stderr,"before detect_pkgs()");
   detect_pkgs();
+  fprintf(stderr,"before detect_cpu()");
   detect_cpu();
+  fprintf(stderr,"before detect_gpu()");
   detect_gpu();
+  fprintf(stderr,"before detect_disk()");
   detect_disk();
+  fprintf(stderr,"before detect_mem()");
   detect_mem();
+  fprintf(stderr,"before detect_shell()");
   detect_shell();
+  fprintf(stderr,"before detect_res()");
   detect_res();
+  fprintf(stderr,"before detect_de()");
   detect_de();
+  fprintf(stderr,"after detect_de()");
   detect_wm();
   detect_wm_theme();
   detect_gtk();
