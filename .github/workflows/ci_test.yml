@@ -39,8 +39,6 @@ jobs:
             
       - name: Runs on ubuntu-latest
         run: | 
-          # xmake run "screenfetch-c.com" --ftrace
-          # xmake run "screenfetch-c.com" --strace
           xmake run
           echo "test done"
       # - name: Upload Build Artifacts to GitHub Release  
