@@ -1,5 +1,5 @@
 add_rules("mode.debug", "mode.release")
-add_requires("cosmocc 3.2.4")
+add_requires("cosmocc")
 set_toolchains("@cosmocc")
 
 target("screenfetch-c.com")
