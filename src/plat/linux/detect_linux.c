@@ -361,7 +361,7 @@ void detect_disk_linux(void) {
 void detect_res_linux(void) {
   const char *sessionType = getenv("XDG_SESSION_TYPE");
   fprintf(stderr,"just called getenv()\n");
-  if(!sessionType){return};
+  if(!sessionType){return;};
   if (STREQ(sessionType, "wayland")) {
     fprintf(stderr,"before detect_res_wayland()\n");
     detect_res_wayland();
