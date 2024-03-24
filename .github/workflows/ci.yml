@@ -28,19 +28,28 @@ jobs:
           sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
           sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
 
+      - name: Extract Platform and Arch  
+        run: |  
+            plat=$(xmake show | grep plat | awk '{print $2}')  
+            arch=$(xmake show | grep arch | awk '{print $2}')  
+            mode=$(xmake show | grep mode | awk '{print $2}')  
+            echo "PLATFORM=$plat" >> $GITHUB_ENV  
+            echo "ARCH=$arch" >> $GITHUB_ENV  
+            echo "MODE=$mode" >> $GITHUB_ENV  
+
       - name: Build with xmake  
         run: xmake -y
   
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-            name: screenfetch-c.com
-            path: build/linux/x86_64/release/screenfetch-c.com
+            name: screenfetch-c_${{ env.PLATFORM }}_${{ env.MODE }}_Artifact_Files
+            path: build/${{ env.PLATFORM }}
       - name: Upload Build Artifacts to GitHub Release  
         uses: svenstaro/upload-release-action@v2.9.0  
         with:  
           repo_token: ${{ secrets.GITHUB_TOKEN }}  
-          file: build/linux/x86_64/release/screenfetch-c.com
+          file: build/${{ env.PLATFORM }}/${{ env.ARCH }}/${{ env.MODE }}/screenfetch-c.com
           asset_name:  screenfetch-c.com
           tag: ${{ github.ref }}  
           overwrite: true

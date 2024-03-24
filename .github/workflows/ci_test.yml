@@ -26,14 +26,23 @@ jobs:
           sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
           sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
 
+      - name: Extract Platform and Arch  
+        run: |  
+            plat=$(xmake show | grep plat | awk '{print $2}')  
+            arch=$(xmake show | grep arch | awk '{print $2}')  
+            mode=$(xmake show | grep mode | awk '{print $2}')  
+            echo "PLATFORM=$plat" >> $GITHUB_ENV  
+            echo "ARCH=$arch" >> $GITHUB_ENV  
+            echo "MODE=$mode" >> $GITHUB_ENV  
+
       - name: Build with xmake  
         run: xmake -y
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-            name: screenfetch-c_Artifact_Files
-            path: build/$(uname -m)
+            name: screenfetch-c_${{ env.PLATFORM }}_${{ env.MODE }}_Artifact_Files
+            path: build/${{ env.PLATFORM }}
 
       - name: Runs on ubuntu-latest
         run: xmake run  
