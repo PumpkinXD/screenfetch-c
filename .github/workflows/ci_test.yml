@@ -19,22 +19,21 @@ jobs:
         with:  
           xmake-version: latest  
   
-      - name: Build with xmake  
-        run: xmake -yvD
+      - name: Setup APE loader
+        run: |
+          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
+          sudo chmod +x /usr/bin/ape
+          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
+          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
 
-      - name: Runs on ubuntu-latest
-        run: xmake run  
-  
+      - name: Build with xmake  
+        run: xmake -y
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-            name: Artifact_Files
-            path: build/linux/x86_64
-      # - name: Upload Build Artifacts to GitHub Release  
-      #   uses: svenstaro/upload-release-action@v2.9.0  
-      #   with:  
-      #     repo_token: ${{ secrets.GITHUB_TOKEN }}  
-      #     file: build/linux/x86_64/release/screenfetch-c.com
-      #     asset_name:  screenfetch-c.com
-      #     tag: ${{ github.ref }}  
-      #     overwrite: true
+            name: screenfetch-c_Artifact_Files
+            path: build/$(uname -m)
+
+      - name: Runs on ubuntu-latest
+        run: xmake run  

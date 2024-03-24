@@ -32,16 +32,15 @@ int has_command(const char *cmd) {
   FILE *fp;
   int status;
 
-  size_t cmd_len = strlen(cmd) + strlen(" --version")+1;
+  size_t cmd_len = strlen(cmd) + strlen("command -v > /dev/null 2>&1 ") + 1;
   char *cmd_line = malloc(cmd_len);
   if (cmd_line == NULL) {
     perror("malloc");
     return -1;
   }
-  snprintf(cmd_line, cmd_len, "%s --version", cmd);
+  snprintf(cmd_line, cmd_len, "command -v %s > /dev/null 2>&1", cmd);
 
   fp = popen(cmd_line, "r");
-//   printf("%s\n",cmd_line);
   if (fp == NULL) {
     perror("popen");
     free(cmd_line);

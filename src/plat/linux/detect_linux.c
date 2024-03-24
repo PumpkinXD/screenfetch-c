@@ -360,12 +360,17 @@ void detect_disk_linux(void) {
 }
 void detect_res_linux(void) {
   const char *sessionType = getenv("XDG_SESSION_TYPE");
-  if (STREQ(sessionType, "wayland")) {
-    detect_res_wayland();
-    return;
-  } else if (STREQ(sessionType, "x11")) {
-    detect_res_xorg();
-    return;
+  if (sessionType) {
+    if (STREQ(sessionType, "wayland")) {
+      detect_res_wayland();
+      return;
+    } else if (STREQ(sessionType, "x11")) {
+      detect_res_xorg();
+      return;
+    } else {
+      detect_res_drm();
+      return;
+    }
   } else {
     detect_res_drm();
     return;
@@ -556,18 +561,20 @@ void detect_res_xorg(void) {
 };
 void detect_res_drm(void){
 
-    /// TODO: "translate" following script(from neofetch) thing to C
-    ///
-    ///
-    /// ``` sh
-    ///             elif[[-d / sys / class / drm]]; then
-    ///                 for dev in /sys/class/drm/*/modes; do
-    ///                     read -r single_resolution _ < "$dev"
-    ///
-    ///                     [[ $single_resolution ]] && resolution="${single_resolution},
-    ///                     ${resolution}"
-    ///                 done
-    ///             fi
-    /// ```
+  safe_strncpy(res_str, "detect_res_drm() not implemented yet", MAX_STRLEN);
+
+  /// TODO: "translate" following script(from neofetch) thing to C
+  ///
+  ///
+  /// ``` sh
+  ///             elif[[-d / sys / class / drm]]; then
+  ///                 for dev in /sys/class/drm/*/modes; do
+  ///                     read -r single_resolution _ < "$dev"
+  ///
+  ///                     [[ $single_resolution ]] && resolution="${single_resolution},
+  ///                     ${resolution}"
+  ///                 done
+  ///             fi
+  /// ```
 
 };
