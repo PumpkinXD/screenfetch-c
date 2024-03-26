@@ -270,7 +270,7 @@ void detect_de(void) {
       detect_de_linux();
       return;
     } else if (IsWindows()) {
-      // detect_de_windows();
+      detect_de_windows();
       return;
     } else if (IsXnuSilicon()) {
       // detect_de_darwin();

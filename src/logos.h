@@ -60,8 +60,10 @@ extern char *neon_logo[];
 
 extern char *windows_post_modern_logo[];//"post modern" lol
 
-extern char *rocky[];
+extern char *rocky[];//reserved
 
-extern char *steam[];
+extern char *steam[];//reserved for steamdeck
+
+extern char *centos[];//zit's computers have windows10 and centos7 (vmware)
 
 #endif /* SCREENFETCH_C_LOGOS_H */

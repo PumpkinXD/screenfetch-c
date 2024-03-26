@@ -27,6 +27,7 @@
 #include <libc/nt/runtime.h>
 #include <libc/nt/process.h>
 #include <libc/nt/struct/processentry32.h>
+#include <libc/nt/struct/osversioninfo.h>
 #include <libc/nt/systeminfo.h>
 
 /* program includes */
@@ -80,6 +81,7 @@ void detect_distro_windows(void) {
     uint32_t dwPlatformId;        // ULONG
     char16_t szCSDVersion[128];   // win32 ver wchar_t
   } OSVERSIONINFOW, *POSVERSIONINFOW, *LPOSVERSIONINFOW, RTL_OSVERSIONINFOW, *PRTL_OSVERSIONINFOW;
+  typedef struct NtOsVersionInfo OSVERSIONINFOWEX, *POSVERSIONINFOWEX;
   typedef int32_t (*__attribute__((__ms_abi__))
                    fnRtlGetVersion)(PRTL_OSVERSIONINFOW lpVersionInformation);
   fnRtlGetVersion pRtlGetVersion = cosmo_dlsym(ntdll, "RtlGetVersion");
@@ -90,25 +92,35 @@ void detect_distro_windows(void) {
     exit(1);
   }
 
-  RTL_OSVERSIONINFOW VersionInformation = {0};
-  VersionInformation.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOW);
-  int32_t ntStatus = pRtlGetVersion(&VersionInformation);
+  struct NtOsVersionInfo VersionInformation = {0};
+  VersionInformation.dwOSVersionInfoSize = sizeof(OSVERSIONINFOWEX);
+  int32_t ntStatus = pRtlGetVersion((PRTL_OSVERSIONINFOW)&VersionInformation);
   if (ntStatus) {
     exit(1);
   }
   uint32_t major = VersionInformation.dwMajorVersion;
   uint32_t minor = VersionInformation.dwMinorVersion;
   uint32_t build = VersionInformation.dwBuildNumber;
+  uint8_t product_type = VersionInformation.wProductType; /// VER_NT_WORKSTATION==0x0000001
 
   if (STREQ(distro_str, "Unknown")) {
     switch (major) {
-    case 10: // TODO:add win11
-      /**        if (build>=22000)
-              {//not quite reliable since win10 insider uses 21000
-                safe_strncpy(distro_str, "Microsoft Windows 11", MAX_STRLEN);
-                break;
-              }*/
-      safe_strncpy(distro_str, "Microsoft Windows 10", MAX_STRLEN);
+    case 10:
+      if (product_type != 1) {
+        if (build > 17763) {
+          safe_strncpy(distro_str, "Microsoft Windows Server 2022", MAX_STRLEN);
+        } else if (build > 14393) {
+          safe_strncpy(distro_str, "Microsoft Windows Server 2019", MAX_STRLEN);
+        } else {
+          safe_strncpy(distro_str, "Microsoft Windows Server 2016", MAX_STRLEN);
+        }
+      } else {
+        if (build >= 22000) {
+          safe_strncpy(distro_str, "Microsoft Windows 11", MAX_STRLEN);
+        } else {
+          safe_strncpy(distro_str, "Microsoft Windows 10", MAX_STRLEN);
+        }
+      }
       break;
     case 6:
       switch (minor) {
@@ -119,6 +131,7 @@ void detect_distro_windows(void) {
         safe_strncpy(distro_str, "Microsoft Windows 8", MAX_STRLEN);
         break;
       case 1:
+        // unreachable??? (cosmo libc supports windows 8+)
         safe_strncpy(distro_str, "Microsoft Windows 7", MAX_STRLEN);
         break;
       case 0:
@@ -154,7 +167,7 @@ void detect_distro_windows(void) {
   return;
 }
 void detect_pkgs_windows(void) {
-  //winget (win10+), scoop, 
+  // winget (win10+), scoop,
 }
 void detect_cpu_windows(void) {
 
@@ -322,6 +335,18 @@ void detect_res_windows(void) {
     return;
   }
   snprintf(res_str, MAX_STRLEN, "%dx%d", width, height);
+}
+
+void detect_de_windows(void) {
+  ///@see https://github.com/dylanaraps/neofetch/issues/1571
+  if (strstr(distro_str, "Microsoft Windows 11") || strstr(distro_str, "Microsoft Windows 10") ||
+      strstr(distro_str, "Microsoft Windows Server 2022") ||
+      strstr(distro_str, "Microsoft Windows Server 2019") ||
+      strstr(distro_str, "Microsoft Windows Server 2016")/*???*/) {
+    safe_strncpy(de_str, "Fluent", MAX_STRLEN);
+  } else if (strstr(distro_str, "Microsoft Windows 8")) {
+    safe_strncpy(de_str, "Metro", MAX_STRLEN);
+  }
 }
 
 /**

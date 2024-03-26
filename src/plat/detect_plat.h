@@ -36,7 +36,7 @@ void detect_res_linux(void);
 void detect_res_windows(void);
 
 void detect_de_linux(void);
-// void detect_de_windows(void);
+void detect_de_windows(void);
 
 
 

@@ -926,3 +926,5 @@ char *rocky[] = {"          __wgliliiligw_,",
                  "            _gllilililiililii~",
                  "           giliiiiiiiiiiiiT`",
                  "          -^~$ililili@~~\'"};
+
+char *centos[]={"???","???"};///TODO: steal centos's ascii art from somewhere

@@ -13,7 +13,7 @@
 #include <stdbool.h>
 
 /* for outputing default linux logo on an unknown linux distro */
-#include <unistd.h>// dce.h need this, idk why
+#include <unistd.h> // dce.h need this, idk why
 #include <libc/dce.h>
 
 /* program includes */
@@ -204,8 +204,14 @@ void process_data(char *data[], char *data_names[], char *logo[], unsigned short
   arguments char *data[], char *data_names[]:
 */
 void main_ascii_output(char *data[], char *data_names[]) {
-  if (strstr(data[1], "Microsoft Windows 8") || strstr(data[1], "Microsoft Windows 10")) {
+  if (strstr(data[1], "Microsoft Windows 8") || strstr(data[1], "Microsoft Windows 10") ||
+      strstr(data[1], "Microsoft Windows Server 2022") ||
+      strstr(data[1], "Microsoft Windows Server 2019") ||
+      strstr(data[1], "Microsoft Windows Server 2016")) {
     process_data(data, data_names, windows_modern_logo, 19, DETECTED_ARR_LEN, TLBL, TNRM, TLBL);
+  } else if (strstr(data[1], "Microsoft Windows 11")) {
+    process_data(data, data_names, windows_post_modern_logo, 15, DETECTED_ARR_LEN, TLBL, TNRM,
+                 TLBL);
   } else if (strstr(data[1], "Microsoft")) {
     process_data(data, data_names, windows_logo, 16, DETECTED_ARR_LEN, TRED, TWHT, TRED);
   } else if (strstr(data[1], "OS X") || strstr(data[1], "Mac OS") || strstr(data[1], "macOS")) {
@@ -218,7 +224,8 @@ void main_ascii_output(char *data[], char *data_names[]) {
     process_data(data, data_names, mint_logo, 18, DETECTED_ARR_LEN, TLGN, TNRM, TLGN);
   } else if (STREQ(data[1], "LMDE")) {
     process_data(data, data_names, lmde_logo, 18, DETECTED_ARR_LEN, TLGN, TNRM, TLGN);
-  } else if (STREQ(data[1], "Ubuntu") || STREQ(data[1], "Lubuntu") || STREQ(data[1], "Xubuntu")/*||STREQ(data[1], "neon")*/) {/*just a workaround*/
+  } else if (STREQ(data[1], "Ubuntu") || STREQ(data[1], "Lubuntu") ||
+             STREQ(data[1], "Xubuntu") /*||STREQ(data[1], "neon")*/) { /*just a workaround*/
     process_data(data, data_names, ubuntu_logo, 18, DETECTED_ARR_LEN, TLRD, TNRM, TLRD);
   } else if (STREQ(data[1], "KDE neon")) {
     process_data(data, data_names, neon_logo, 19, DETECTED_ARR_LEN, TLGN, TNRM, TLGN);
@@ -289,7 +296,7 @@ void main_ascii_output(char *data[], char *data_names[]) {
     process_data(data, data_names, dragonflybsd_logo, 23, DETECTED_ARR_LEN, TNRM, TNRM, TNRM);
   } else if (STREQ(data[1], "SunOS")) {
     process_data(data, data_names, solaris_logo, 17, DETECTED_ARR_LEN, TNRM, TNRM, TNRM);
-  } else if(IsLinux()){
+  } else if (IsLinux()) {
     /*print kernel's logo if cannot find a logo*/
     process_data(data, data_names, linux_logo, 18, DETECTED_ARR_LEN, TLGY, TNRM, TLGY);
   } else {

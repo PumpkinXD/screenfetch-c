@@ -174,8 +174,7 @@ void detect_pkgs_linux(void) {
     }
   }
   if (has_command("snap")) {
-    ///TODO: count snap pkgs
-
+    /// TODO: count snap pkgs
   }
 
   // parts from master branch
@@ -317,6 +316,7 @@ void detect_gpu_linux(void) {
       return;
     } else if (STREQ(sessionType, "x11")) {
       detect_gpu_xorg();
+      // detect_gpu_lspci();
       return;
     } else {
       detect_gpu_lspci(); // from neofetch
@@ -422,7 +422,8 @@ void detect_gpu_xorg(void) {
   void *libGL_so = cosmo_dlopen("libGL.so", RTLD_LAZY);
   void *libGLX_so = cosmo_dlopen("libGLX.so", RTLD_LAZY);
   if (!libGL_so || !libGL_so || !libGLX_so) {
-    exit(1);
+    detect_gpu_lspci();
+    return;
   }
 
   fnXOpenDisplay pXOpenDisplay;
@@ -447,6 +448,7 @@ void detect_gpu_xorg(void) {
   pglXDestroyContext = cosmo_dlsym(libGLX_so, "glXDestroyContext");
   if (!pXOpenDisplay || !pXCloseDisplay || !pXFree || !pglGetString || !pglXChooseVisual ||
       !pglXCreateContext || !pglXMakeCurrent || !pglXDestroyContext) {
+
     exit(1);
   }
 
@@ -506,18 +508,18 @@ void detect_gpu_wayland(void) {
 void detect_gpu_lspci(void) {
   FILE *fp;
   char gpu_name[MAX_STRLEN];
-
-  fp = popen("lspci -mm | awk -F '\"|\" \"|\\(' '/\"Display|\"3D|\"VGA/ {print $1 \" \" $3 \" \" "
-             "$(NF-1)}'",
-             "r");
+  // sh command:
+  //  lspci -mm | awk -F '\"' '/"VGA compatible controller"/{print $4, $6}'
+  fp = popen("lspci -mm | awk -F '\"' '/\"VGA compatible controller\"/{print $4, $6}'", "r");
   if (fp == NULL) {
     safe_strncpy(gpu_str, "Unknown", MAX_STRLEN);
     ERR_REPORT("Failed to run command (detect_gpu).");
     return;
-  }
-
-  if (fgets(gpu_name, sizeof(gpu_name) - 1, fp) != NULL) {
-    safe_strncpy(gpu_str, gpu_name, MAX_STRLEN);
+  } else {
+    if (fgets(gpu_name, sizeof(gpu_name) - 1, fp) != NULL) {
+      gpu_name[strcspn(gpu_name, "\n")] = 0;
+      safe_strncpy(gpu_str, gpu_name, MAX_STRLEN);
+    }
   }
 
   /* close */
@@ -559,7 +561,7 @@ void detect_res_xorg(void) {
   dlclose(libX11_so);
   return;
 };
-void detect_res_drm(void){
+void detect_res_drm(void) {
 
   safe_strncpy(res_str, "detect_res_drm() not implemented yet", MAX_STRLEN);
 
@@ -576,5 +578,4 @@ void detect_res_drm(void){
   ///                 done
   ///             fi
   /// ```
-
 };
