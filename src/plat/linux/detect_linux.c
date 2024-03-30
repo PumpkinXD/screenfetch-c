@@ -93,8 +93,27 @@ void detect_distro_linux(void) {
 
       if (!detected) {
         if (FILE_EXISTS("/etc/redhat-release")) {
-          safe_strncpy(distro_str, "Red Hat Linux", MAX_STRLEN);
-          safe_strncpy(host_color, TLRD, MAX_STRLEN);
+          FILE *rh_release_file;
+          if (FILE_EXISTS("/etc/rocky-release")) {
+            safe_strncpy(distro_str, "Rocky Linux", MAX_STRLEN);
+            safe_strncpy(host_color, TLRD, MAX_STRLEN);
+          }else if (FILE_EXISTS("/etc/almalinux-release")) {
+            safe_strncpy(distro_str, "AlmaLinux", MAX_STRLEN);
+          }else if (FILE_EXISTS("/etc/oracle-release")) {
+            safe_strncpy(distro_str, "Oracle Linux", MAX_STRLEN);
+          } else if (0) {
+            /// TODO: Add more Red Hat derivatives
+          }else {
+            rh_release_file = fopen("/etc/redhat-release", "r");
+            fgets(distro_name_str, MAX_STRLEN, rh_release_file);
+            fclose(rh_release_file);
+            if (strstr("CentOS", distro_name_str)) {
+              safe_strncpy(distro_str, "CentOS Linux", MAX_STRLEN);
+            } else {
+              safe_strncpy(distro_str, "Red Hat Linux", MAX_STRLEN);
+              safe_strncpy(host_color, TLRD, MAX_STRLEN);
+            }
+          }
         } else if (FILE_EXISTS("/etc/fedora-release")) {
           safe_strncpy(distro_str, "Fedora", MAX_STRLEN);
           safe_strncpy(host_color, TLBL, MAX_STRLEN);
@@ -163,17 +182,17 @@ void detect_pkgs_linux(void) {
     int pkgs;
   } opt_pkg;
   opt_pkg opt_pkgs[4] = {{"flatpak", 0}, {"snap", 0}, {"brew", 0}, {"nix", 0}};
-
-  if (has_command("flatpak")) {
+  if (has_command3("flatpak --help")) {
     glob_t gl_flatpak;
     // https://github.com/fastfetch-cli/fastfetch/blob/50da7cabd61c6c7e7930375de4920b93c41aea07/src/detection/packages/packages_linux.c#L198
     if (!glob("/var/lib/flatpak/runtime/*", GLOB_NOSORT, NULL, &gl_flatpak)) {
       opt_pkgs[0].pkgs += gl_flatpak.gl_pathc;
+
       // printf("%d \n", gl_flatpak.gl_pathc);
       globfree(&gl_flatpak);
     }
   }
-  if (has_command("snap")) {
+  if (has_command3("snap")) {
     /// TODO: count snap pkgs
   }
 

@@ -162,6 +162,10 @@ void output_logo_only(char *distro) {
     process_logo_only(solaris_logo, 17);
   } else if (STREQ(distro, "Angstrom")) {
     process_logo_only(angstrom_logo, 16);
+  } else if (STREQ(distro, "CentOS Linux")) {
+    process_logo_only(centos_logo, 19);
+  } else if (STREQ(distro, "Rocky Linux")) {
+    process_logo_only(rocky_logo, 19);
   } else /* if (STREQ(distro_str, "Linux")) */
   {
     process_logo_only(linux_logo, 16);

@@ -44,5 +44,7 @@ void detect_de_windows(void);
 * misc functions?
 */
 int has_command(const char *cmd);
+int has_command2(const char *cmd);
+int has_command3(const char *cmd);
 
 #endif
