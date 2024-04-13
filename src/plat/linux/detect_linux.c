@@ -93,26 +93,24 @@ void detect_distro_linux(void) {
 
       if (!detected) {
         if (FILE_EXISTS("/etc/redhat-release")) {
-          FILE *rh_release_file;
           if (FILE_EXISTS("/etc/rocky-release")) {
             safe_strncpy(distro_str, "Rocky Linux", MAX_STRLEN);
-            safe_strncpy(host_color, TLRD, MAX_STRLEN);
-          }else if (FILE_EXISTS("/etc/almalinux-release")) {
+            safe_strncpy(host_color, TLGN, MAX_STRLEN);
+          } else if (FILE_EXISTS("/etc/almalinux-release")) {
             safe_strncpy(distro_str, "AlmaLinux", MAX_STRLEN);
-          }else if (FILE_EXISTS("/etc/oracle-release")) {
+          } else if (FILE_EXISTS("/etc/oracle-release")) {
             safe_strncpy(distro_str, "Oracle Linux", MAX_STRLEN);
+          } else if (FILE_EXISTS("/etc/centos-release")) {
+            safe_strncpy(distro_str, "CentOS Linux", MAX_STRLEN);
+          } else if (FILE_EXISTS("/etc/fedora-release")) {//tested on fedora40,  /etc/redhat-release and /etc/fedora-release are exist
+            safe_strncpy(distro_str, "Fedora", MAX_STRLEN);
+            safe_strncpy(host_color, TLBL, MAX_STRLEN);
           } else if (0) {
             /// TODO: Add more Red Hat derivatives
-          }else {
-            rh_release_file = fopen("/etc/redhat-release", "r");
-            fgets(distro_name_str, MAX_STRLEN, rh_release_file);
-            fclose(rh_release_file);
-            if (strstr("CentOS", distro_name_str)) {
-              safe_strncpy(distro_str, "CentOS Linux", MAX_STRLEN);
-            } else {
-              safe_strncpy(distro_str, "Red Hat Linux", MAX_STRLEN);
-              safe_strncpy(host_color, TLRD, MAX_STRLEN);
-            }
+
+          } else {
+            safe_strncpy(distro_str, "Red Hat Linux", MAX_STRLEN);
+            safe_strncpy(host_color, TLRD, MAX_STRLEN);
           }
         } else if (FILE_EXISTS("/etc/fedora-release")) {
           safe_strncpy(distro_str, "Fedora", MAX_STRLEN);
@@ -252,6 +250,8 @@ void detect_pkgs_linux(void) {
     globfree(&gl);
   } else if (STREQ(distro_str, "Fuduntu") || STREQ(distro_str, "Fedora") ||
              STREQ(distro_str, "OpenSUSE") || STREQ(distro_str, "Red Hat Linux") ||
+             STREQ(distro_str, "CentOS Linux") || STREQ(distro_str, "Rocky Linux") ||
+             STREQ(distro_str, "AlmaLinux") || STREQ(distro_str, "Oracle Linux") ||
              STREQ(distro_str, "Mandriva") || STREQ(distro_str, "Mandrake") ||
              STREQ(distro_str, "Mageia") || STREQ(distro_str, "Viperr")) {
     /* RPM uses Berkeley DBs internally, so this won't change soon */

@@ -209,11 +209,13 @@ void process_data(char *data[], char *data_names[], char *logo[], unsigned short
 */
 void main_ascii_output(char *data[], char *data_names[]) {
   if (strstr(data[1], "Microsoft Windows 8") || strstr(data[1], "Microsoft Windows 10") ||
-      strstr(data[1], "Microsoft Windows Server 2022") ||
+      strstr(data[1],
+             "Microsoft Windows Server 2022") || /*actually IDK which logo I should use...*/
       strstr(data[1], "Microsoft Windows Server 2019") ||
       strstr(data[1], "Microsoft Windows Server 2016")) {
     process_data(data, data_names, windows_modern_logo, 19, DETECTED_ARR_LEN, TLBL, TNRM, TLBL);
-  } else if (strstr(data[1], "Microsoft Windows 11")) {
+  } else if (strstr(data[1], "Microsoft Windows 11") ||
+             strstr(data[1], "Microsoft Windows Server 2025")) {
     process_data(data, data_names, windows_post_modern_logo, 15, DETECTED_ARR_LEN, TLBL, TNRM,
                  TLBL);
   } else if (strstr(data[1], "Microsoft")) {

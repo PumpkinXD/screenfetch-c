@@ -239,7 +239,7 @@ typedef GLXContext (*fnglXCreateContext)(Display *dpy, XVisualInfo *vis, GLXCont
 typedef int (*fnglXMakeCurrent)(Display *dpy, GLXDrawable drawable, GLXContext ctx);
 
 // GLAPI const GLubyte * GLAPIENTRY glGetString( GLenum name );
-typedef const GLubyte *(*__attribute__((visibility("default"))) fnglGetString)(GLenum name);
+typedef const GLubyte *(* fnglGetString)(GLenum name);
 
 //void glXDestroyContext(Display *dpy, GLXContext ctx);
 typedef void (*fnglXDestroyContext)(Display *dpy, GLXContext ctx);

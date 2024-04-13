@@ -94,8 +94,9 @@ int has_command3(const char *cmd) {
 
     dup2(fd, STDOUT_FILENO);
     dup2(fd, STDERR_FILENO);
-
-    char *argv[] = {"sh", "-c", cmd, NULL};
+    char cmd_cped[MAX_STRLEN]={0};
+    safe_strncpy(cmd_cped, cmd, MAX_STRLEN);
+    char *argv[] = {"sh", "-c", cmd_cped, NULL};
     execv("/bin/sh", argv);
 
     perror("execv");

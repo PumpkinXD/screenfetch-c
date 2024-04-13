@@ -7,6 +7,7 @@ void detect_distro_linux(void);
 void detect_distro_darwin_x86workaround(void);
 // void detect_distro_solaris(void);//not supported by cosmo
 void detect_distro_windows(void);
+void detect_distro_windows_v2(void);
 
 void detect_pkgs_linux(void);
 void detect_pkgs_darwin(void);

@@ -107,7 +107,9 @@ void detect_distro_windows(void) {
     switch (major) {
     case 10:
       if (product_type != 1) {
-        if (build > 17763) {
+        if (build >= 26085) {
+          safe_strncpy(distro_str, "Microsoft Windows Server 2025", MAX_STRLEN);
+        } else if (build > 17763) {
           safe_strncpy(distro_str, "Microsoft Windows Server 2022", MAX_STRLEN);
         } else if (build > 14393) {
           safe_strncpy(distro_str, "Microsoft Windows Server 2019", MAX_STRLEN);
@@ -159,12 +161,45 @@ void detect_distro_windows(void) {
   if (major == 10 || (major == 6 && (minor == 3 || minor == 2))) {
     safe_strncpy(host_color, TLBL, MAX_STRLEN);
   } else {
-    safe_strncpy(host_color, TRED, MAX_STRLEN);
+    safe_strncpy(host_color, TRED, MAX_STRLEN);//unreachable atm
   }
 
   cosmo_dlclose(ntdll);
 
   return;
+}
+void detect_distro_windows_v2(void) {
+  void *winbrand_dll = cosmo_dlopen("winbrand.dll", RTLD_LAZY);
+  if (!winbrand_dll) {
+    detect_distro_windows(); // fallback to rtlGetVersion()
+    return;
+  }
+  typedef char16_t *(*__attribute__((__ms_abi__)) fnBrandingFormatString)(char16_t *pstrFormat);
+  fnBrandingFormatString pBrandingFormatString = cosmo_dlsym(winbrand_dll, "BrandingFormatString");
+  if (!pBrandingFormatString) {
+    cosmo_dlclose(winbrand_dll);
+    detect_distro_windows();
+    return;
+  }
+  char16_t *product_str_u16 = pBrandingFormatString(u"%WINDOWS_LONG%");
+  char *product_str_u8 = utf16_to_utf8(product_str_u16);
+  if (product_str_u8) {
+    safe_strncpy(distro_str, product_str_u8, MAX_STRLEN);
+    if (1 /*strcasestr("Windows 11") || strcasestr("Windows 10") || strcasestr("Windows 8")*/) {
+      /*
+       * APE supports nt6.2+ at the moment(20240410)
+       */
+      safe_strncpy(host_color, TLBL, MAX_STRLEN);
+    } else {
+      /*
+      * unreachable atm
+      */
+      safe_strncpy(host_color, TRED, MAX_STRLEN);
+    }
+    free(product_str_u8);
+    cosmo_dlclose(winbrand_dll);
+    return;
+  }
 }
 void detect_pkgs_windows(void) {
   // winget (win10+), scoop,
@@ -342,7 +377,7 @@ void detect_de_windows(void) {
   if (strstr(distro_str, "Microsoft Windows 11") || strstr(distro_str, "Microsoft Windows 10") ||
       strstr(distro_str, "Microsoft Windows Server 2022") ||
       strstr(distro_str, "Microsoft Windows Server 2019") ||
-      strstr(distro_str, "Microsoft Windows Server 2016")/*???*/) {
+      strstr(distro_str, "Microsoft Windows Server 2016") /*???*/) {
     safe_strncpy(de_str, "Fluent", MAX_STRLEN);
   } else if (strstr(distro_str, "Microsoft Windows 8")) {
     safe_strncpy(de_str, "Metro", MAX_STRLEN);
